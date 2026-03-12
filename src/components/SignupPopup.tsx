@@ -171,10 +171,19 @@ const SignupPopup = () => {
         fn();
       };
 
+      const timeout = window.setTimeout(() => {
+        finish(() => reject(new Error("Tempo esgotado ao tentar autenticar com Google.")));
+      }, 30000);
+
       const tokenClient = oauth2.initTokenClient({
         client_id: clientId,
         scope: "openid email profile",
         callback: (response: any) => {
+          window.clearTimeout(timeout);
+          if (response?.error) {
+            finish(() => reject(new Error(String(response.error_description || response.error || "Falha no Google OAuth."))));
+            return;
+          }
           const token = String(response?.access_token || "").trim();
           if (!token) {
             finish(() => reject(new Error("Nao foi possivel obter token Google.")));
@@ -182,11 +191,21 @@ const SignupPopup = () => {
           }
           finish(() => resolve(token));
         },
+        error_callback: (error: any) => {
+          window.clearTimeout(timeout);
+          const reason = String(error?.type || error?.message || "").toLowerCase();
+          if (reason.includes("popup")) {
+            finish(() => reject(new Error("Popup do Google bloqueado. Permita popups e tente novamente.")));
+            return;
+          }
+          finish(() => reject(new Error("Falha ao abrir autenticacao Google.")));
+        },
       });
 
       try {
         tokenClient.requestAccessToken({ prompt: "consent" });
       } catch {
+        window.clearTimeout(timeout);
         finish(() => reject(new Error("Falha ao abrir autenticacao Google.")));
       }
     });
@@ -319,11 +338,11 @@ const SignupPopup = () => {
         | null = null;
 
       try {
-        const idToken = await requestGoogleCredential(clientId);
-        result = await googleLogin({ idToken });
-      } catch {
         const accessToken = await requestGoogleAccessToken(clientId);
         result = await googleLogin({ accessToken });
+      } catch {
+        const idToken = await requestGoogleCredential(clientId);
+        result = await googleLogin({ idToken });
       }
 
       if (!result) {
@@ -452,6 +471,10 @@ const SignupPopup = () => {
 
           {mode === "register" && (
             <form onSubmit={handleRegisterSubmit} className="space-y-2">
+              <Button type="button" variant="outline" className="w-full text-sm" onClick={handleGoogleLogin} disabled={loading}>
+                {loading ? "Conectando..." : "Cadastrar com Google"}
+              </Button>
+
               <div className="grid grid-cols-2 gap-2">
                 <Input placeholder="Nome" value={regFirstName} onChange={(e) => setRegFirstName(e.target.value)} disabled={loading} className="text-sm" />
                 <Input placeholder="Sobrenome" value={regLastName} onChange={(e) => setRegLastName(e.target.value)} disabled={loading} className="text-sm" />

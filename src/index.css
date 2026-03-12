@@ -235,7 +235,7 @@
   }
 
   .social-float-blink {
-    animation: social-float-blink 0.44s ease-in-out 3;
+    animation: social-float-blink 0.62s ease-in-out 3;
   }
 
   .news-banner {
@@ -438,8 +438,8 @@
     transform: scale(1);
     filter: brightness(1);
   }
-  45% {
-    transform: scale(1.08);
-    filter: brightness(1.28);
+  50% {
+    transform: scale(1.06);
+    filter: brightness(1.2);
   }
 }
