@@ -20,7 +20,13 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const links = [
     ...menuLinks,
-    ...(user ? [{ name: "Histórico de Compras", href: "/historico" }] : []),
+    { name: "Pagamento", href: "/checkout" },
+    ...(user
+      ? [
+          { name: "Minha Carteira", href: "/carteira" },
+          { name: "Historico de Compras", href: "/historico" },
+        ]
+      : []),
   ];
   const erpLoginUrl =
     import.meta.env.VITE_ERP_URL || "http://localhost:8081/login";

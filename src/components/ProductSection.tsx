@@ -75,6 +75,7 @@ const ProductSection = ({
                         name={product.name}
                         price={product.price}
                         image={product.image}
+                        category={product.category}
                         isNew={product.isNew}
                       />
                     </div>

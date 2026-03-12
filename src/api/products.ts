@@ -9,25 +9,91 @@ const unwrapList = <T,>(payload: ApiListResponse<T> | T[]): T[] => {
   return [];
 };
 
-const filterActive = (products: Product[]) =>
-  products.filter((item) => item.isActive !== false);
+const filterActive = (products: Product[]) => products.filter((item) => item.isActive !== false);
+
+const normalizeCategory = (value: unknown) => {
+  if (typeof value === "string") return value.trim().toLowerCase();
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    if (typeof record.slug === "string" && record.slug.trim()) return record.slug.trim().toLowerCase();
+    if (typeof record.name === "string" && record.name.trim()) return record.name.trim().toLowerCase();
+  }
+  return "";
+};
+
+const mediaBaseOrigin = () => {
+  if (typeof window === "undefined") return "";
+  try {
+    return new URL(window.location.origin).origin;
+  } catch {
+    return "";
+  }
+};
+
+const normalizeMediaUrl = (value: unknown): string => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("data:image/")) return raw;
+
+  if (typeof window === "undefined") return raw;
+  const browserOrigin = mediaBaseOrigin();
+  if (!browserOrigin) return raw;
+
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const parsed = new URL(raw);
+      const isLocalHost = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+      if (isLocalHost && window.location.hostname.endsWith("bacaxita.com.br")) {
+        parsed.protocol = window.location.protocol;
+        parsed.host = window.location.host;
+        return parsed.toString();
+      }
+      return raw;
+    } catch {
+      return raw;
+    }
+  }
+
+  const normalizedPath = raw.startsWith("/") ? raw : `/${raw}`;
+  return `${browserOrigin}${normalizedPath}`;
+};
+
+const normalizeProduct = (value: any): Product => {
+  const image = normalizeMediaUrl(value?.image || value?.imageUrl || value?.image_link);
+  const banner = normalizeMediaUrl(value?.bannerImage || value?.banner);
+
+  return {
+    id: Number(value?.id || 0),
+    name: String(value?.name || "Produto"),
+    price: Number(value?.price || 0),
+    image: image || banner || "/placeholder.svg",
+    bannerImage: banner || undefined,
+    isNew: Boolean(value?.isNew),
+    isActive: value?.isActive ?? value?.active ?? true,
+    isFeatured: Boolean(value?.isFeatured),
+    isPopular: Boolean(value?.isPopular),
+    category: normalizeCategory(value?.category),
+    material: typeof value?.material === "string" ? value.material : undefined,
+    brand: typeof value?.brand === "string" ? value.brand : undefined,
+  };
+};
+
+const normalizeList = (payload: ApiListResponse<Product> | Product[] | any): Product[] =>
+  unwrapList(payload).map(normalizeProduct).filter((product) => product.id > 0);
 
 export async function fetchFeaturedProducts(): Promise<Product[]> {
   if (USE_MOCKS) return mockApi.featuredProducts();
 
   try {
     const response = await apiGet<ApiListResponse<Product> | Product[]>("/products/featured");
-    return filterActive(unwrapList(response));
+    return filterActive(normalizeList(response));
   } catch {
     // ignore and try ERP fallback
   }
 
   try {
-    const response = await apiGetWithBase<ApiListResponse<Product> | Product[]>(
-      ERP_API_BASE,
-      "/products/featured"
-    );
-    return filterActive(unwrapList(response));
+    const response = await apiGetWithBase<ApiListResponse<Product> | Product[]>(ERP_API_BASE, "/products/featured");
+    return filterActive(normalizeList(response));
   } catch {
     return [];
   }
@@ -38,17 +104,14 @@ export async function fetchPopularProducts(): Promise<Product[]> {
 
   try {
     const response = await apiGet<ApiListResponse<Product> | Product[]>("/products/popular");
-    return filterActive(unwrapList(response));
+    return filterActive(normalizeList(response));
   } catch {
     // ignore and try ERP fallback
   }
 
   try {
-    const response = await apiGetWithBase<ApiListResponse<Product> | Product[]>(
-      ERP_API_BASE,
-      "/products/popular"
-    );
-    return filterActive(unwrapList(response));
+    const response = await apiGetWithBase<ApiListResponse<Product> | Product[]>(ERP_API_BASE, "/products/popular");
+    return filterActive(normalizeList(response));
   } catch {
     return [];
   }
@@ -60,7 +123,7 @@ export async function fetchProductsByCategory(slug: string): Promise<Product[]> 
 
   try {
     const response = await apiGet<ApiListResponse<Product> | Product[]>(`/categories/${safeSlug}/products`);
-    return unwrapList(response);
+    return filterActive(normalizeList(response));
   } catch {
     // ignore and try ERP fallback
   }
@@ -70,7 +133,7 @@ export async function fetchProductsByCategory(slug: string): Promise<Product[]> 
       ERP_API_BASE,
       `/categories/${safeSlug}/products`
     );
-    return unwrapList(response);
+    return filterActive(normalizeList(response));
   } catch {
     return [];
   }

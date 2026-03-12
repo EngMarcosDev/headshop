@@ -8,10 +8,11 @@ interface ProductCardProps {
   name: string;
   price: number;
   image: string;
+  category?: string;
   isNew?: boolean;
 }
 
-const ProductCard = ({ id, name, price, image, isNew = false }: ProductCardProps) => {
+const ProductCard = ({ id, name, price, image, category, isNew = false }: ProductCardProps) => {
   const { addItem, items, updateQuantity } = useCart();
   const [justAdded, setJustAdded] = useState(false);
 
@@ -27,13 +28,23 @@ const ProductCard = ({ id, name, price, image, isNew = false }: ProductCardProps
     currency: "BRL",
   }).format(price * quantity);
 
+  const emitCartAdded = () => {
+    window.dispatchEvent(
+      new CustomEvent("bacaxita:cart-added", {
+        detail: { category: String(category || "").toLowerCase() },
+      })
+    );
+  };
+
   const handleAddToCart = () => {
-    addItem({ id, name, price, image });
+    addItem({ id, name, price, image, category });
     setJustAdded(true);
+    emitCartAdded();
   };
 
   const handleIncrement = () => {
-    addItem({ id, name, price, image });
+    addItem({ id, name, price, image, category });
+    emitCartAdded();
   };
 
   const handleDecrement = () => {
@@ -65,6 +76,9 @@ const ProductCard = ({ id, name, price, image, isNew = false }: ProductCardProps
           loading="lazy"
           decoding="async"
           className="max-h-[110px] md:max-h-[130px] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+          onError={(event) => {
+            event.currentTarget.src = "/placeholder.svg";
+          }}
         />
       </div>
 

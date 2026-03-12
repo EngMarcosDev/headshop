@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import SignupPopup from "@/components/SignupPopup";
 import CartSidebar from "@/components/CartSidebar";
 import CookieConsent from "@/components/CookieConsent";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import Index from "./pages/Index";
 import CategoryPage from "./pages/CategoryPage";
 import NotFound from "./pages/NotFound";
@@ -16,6 +17,8 @@ import ErpAccessPage from "./pages/ErpAccessPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentErrorPage from "./pages/PaymentErrorPage";
 import PaymentPendingPage from "./pages/PaymentPendingPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import WalletPage from "./pages/WalletPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +41,7 @@ const App = () => (
           <Sonner />
           <SignupPopup />
           <CartSidebar />
+          <WhatsAppFloat />
           <CookieConsent />
           <BrowserRouter>
             <Routes>
@@ -45,6 +49,8 @@ const App = () => (
               <Route path="/categoria/:slug" element={<CategoryPage />} />
               <Route path="/historico" element={<HistoryPage />} />
               <Route path="/erp" element={<ErpAccessPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/carteira" element={<WalletPage />} />
               <Route path="/pagamento/sucesso" element={<PaymentSuccessPage />} />
               <Route path="/pagamento/erro" element={<PaymentErrorPage />} />
               <Route path="/pagamento/pendente" element={<PaymentPendingPage />} />

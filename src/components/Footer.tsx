@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { Instagram, Mail, MessageCircle } from "lucide-react";
+import { Instagram, Mail, MessageCircle, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -64,24 +64,33 @@ const Footer = () => {
                   <Mail className="w-4 h-4" />
                   <span>adm.bacaxita@gmail.com</span>
                 </a>
+                <a
+                  href="tel:+5581981705445"
+                  className="flex items-center justify-center md:justify-end gap-2 hover:text-rasta-yellow transition-all"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>(81) 98170-5445</span>
+                </a>
               </div>
 
-              <div className="flex items-center justify-center md:justify-end gap-4 mt-4">
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-3 md:justify-end">
                 <a
                   href="https://instagram.com/bacaxita"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="opacity-75 hover:opacity-100 hover:text-rasta-yellow transition-all"
+                  className="social-pill-instagram"
                 >
-                  <Instagram className="w-5 h-5" />
+                  <Instagram className="h-4 w-4" />
+                  Instagram
                 </a>
                 <a
                   href="https://wa.me/5581981705445"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="opacity-75 hover:opacity-100 hover:text-rasta-yellow transition-all"
+                  className="social-pill-whatsapp"
                 >
-                  <MessageCircle className="w-5 h-5" />
+                  <MessageCircle className="h-4 w-4 fill-white" />
+                  WhatsApp
                 </a>
               </div>
             </div>

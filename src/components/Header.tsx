@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, ShoppingBag, User } from "lucide-react";
 import { Button } from "./ui/button";
 import MobileMenu from "./MobileMenu";
@@ -7,8 +7,25 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [highlightCartBadge, setHighlightCartBadge] = useState(false);
   const { totalItems, setIsOpen } = useCart();
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const handleCartAdded = (event: Event) => {
+      const customEvent = event as CustomEvent<{ category?: string }>;
+      const category = String(customEvent.detail?.category || "").toLowerCase();
+      if (category !== "bacakits") return;
+
+      setHighlightCartBadge(true);
+      window.setTimeout(() => setHighlightCartBadge(false), 1300);
+    };
+
+    window.addEventListener("bacaxita:cart-added", handleCartAdded as EventListener);
+    return () => {
+      window.removeEventListener("bacaxita:cart-added", handleCartAdded as EventListener);
+    };
+  }, []);
 
   const triggerLogin = () => {
     window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { force: true } }));
@@ -53,7 +70,11 @@ const Header = () => {
               >
                 <ShoppingBag className="w-5 h-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rasta-green text-white text-[10px] rounded-full flex items-center justify-center font-bold px-1">
+                  <span
+                    className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rasta-green text-white text-[10px] rounded-full flex items-center justify-center font-bold px-1 ${
+                      highlightCartBadge ? "cart-badge-glow" : ""
+                    }`}
+                  >
                     {totalItems > 99 ? "99+" : totalItems}
                   </span>
                 )}

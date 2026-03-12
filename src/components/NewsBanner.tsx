@@ -38,8 +38,8 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
 
   if (isLoading) {
     return (
-      <section className="px-3 sm:px-4 md:px-6 pt-6 md:pt-8">
-        <div className="max-w-6xl mx-auto h-[160px] sm:h-[220px] md:h-[280px] rounded-2xl border border-border bg-muted/60 animate-pulse" />
+      <section className="w-full pt-6 md:pt-8">
+        <div className="h-[200px] sm:h-[260px] md:h-[360px] w-full border-y border-border bg-muted/60 animate-pulse" />
       </section>
     );
   }
@@ -49,46 +49,47 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
   }
 
   return (
-    <section className="px-3 sm:px-4 md:px-6 pt-6 md:pt-8">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-sm sm:text-base md:text-lg font-display font-bold uppercase tracking-[0.3em] text-foreground mb-3">
+    <section className="w-full pt-6 md:pt-8">
+      <div className="mx-auto max-w-6xl px-4">
+        <h2 className="mb-3 text-sm font-display font-bold uppercase tracking-[0.3em] text-foreground sm:text-base md:text-lg">
           Novidades
         </h2>
-
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
-          <div
-            className="flex transition-transform duration-700 ease-out"
-            style={{ transform: `translateX(-${index * 100}%)` }}
-          >
-            {slides.map((slide) => (
-              <div key={slide.id} className="w-full flex-shrink-0">
-                <div
-                  className="h-[160px] sm:h-[220px] md:h-[280px] bg-cover bg-center"
-                  style={{ backgroundImage: `url(${slide.image})` }}
-                  role="img"
-                  aria-label={slide.name}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {slides.length > 1 && (
-          <div className="mt-3 flex items-center justify-center gap-2">
-            {slides.map((slide, dotIndex) => (
-              <button
-                key={`dot-${slide.id}`}
-                type="button"
-                onClick={() => setIndex(dotIndex)}
-                className={`h-2 rounded-full transition-all ${
-                  dotIndex === index ? "w-8 bg-accent" : "w-2 bg-border"
-                }`}
-                aria-label={`Exibir banner ${dotIndex + 1}`}
-              />
-            ))}
-          </div>
-        )}
       </div>
+
+      <div className="relative w-full overflow-hidden border-y border-border bg-card shadow-lg">
+        <div
+          className="flex transition-transform duration-700 ease-out"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {slides.map((slide) => (
+            <div key={slide.id} className="w-full flex-shrink-0">
+              <img
+                src={slide.image}
+                alt={slide.name}
+                className="h-[200px] w-full object-cover sm:h-[260px] md:h-[360px]"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {slides.length > 1 && (
+        <div className="mx-auto mt-3 flex max-w-6xl items-center justify-center gap-2 px-4">
+          {slides.map((slide, dotIndex) => (
+            <button
+              key={`dot-${slide.id}`}
+              type="button"
+              onClick={() => setIndex(dotIndex)}
+              className={`h-2 rounded-full transition-all ${
+                dotIndex === index ? "w-8 bg-accent" : "w-2 bg-border"
+              }`}
+              aria-label={`Exibir banner ${dotIndex + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 };

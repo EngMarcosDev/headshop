@@ -1,14 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
-import { X, Minus, Plus, Trash2, ShoppingBag, AlertCircle } from "lucide-react";
+﻿import { useEffect, useMemo, useState } from "react";
+import { AlertCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice } from "@/lib/priceFormatter";
 
-/**
- * NORMALIZADOR DE ITENS
- * Garante que todos os items tenham tipos corretos e valores válidos
- */
 const normalizeCartItem = (item: any) => ({
   id: Number(item.id) || 0,
   name: String(item.name || item.productName || "Produto sem nome").trim(),
@@ -23,40 +19,24 @@ const CartSidebar = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Normalizar todos os items garantindo tipos corretos
   const normalizedItems = useMemo(() => {
-    try {
-      if (!Array.isArray(items)) return [];
-      return items
-        .map((item) => {
-          try {
-            return normalizeCartItem(item);
-          } catch (e) {
-            console.error("[CartSidebar] Erro ao normalizar item:", item, e);
-            return null;
-          }
-        })
-        .filter((item) => item !== null && item.id > 0);
-    } catch (e) {
-      console.error("[CartSidebar] Erro ao normalizar items", e);
-      return [];
-    }
+    if (!Array.isArray(items)) return [];
+    return items
+      .map((item) => {
+        try {
+          return normalizeCartItem(item);
+        } catch {
+          return null;
+        }
+      })
+      .filter((item) => item !== null && item.id > 0);
   }, [items]);
 
-  // Calcular total de forma segura
-  const totalPrice = useMemo(() => {
-    try {
-      return normalizedItems.reduce((sum, item) => {
-        const itemTotal = (item.price || 0) * (item.quantity || 0);
-        return sum + itemTotal;
-      }, 0);
-    } catch (e) {
-      console.error("[CartSidebar] Erro ao calcular total", e);
-      return 0;
-    }
-  }, [normalizedItems]);
+  const totalPrice = useMemo(
+    () => normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [normalizedItems]
+  );
 
-  // Prevent body scroll when cart is open
   useEffect(() => {
     if (!isOpen) return;
     const previousOverflow = document.body.style.overflow;
@@ -69,34 +49,30 @@ const CartSidebar = () => {
   const handleQuantityChange = (id: number, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeItem(id);
-    } else {
-      updateQuantity(id, newQuantity);
+      return;
     }
+    updateQuantity(id, newQuantity);
   };
 
   const handleCheckout = async () => {
     setError(null);
 
     if (normalizedItems.length === 0) {
-      setError("Sua sacola está vazia");
+      setError("Sua sacola esta vazia");
       return;
     }
 
     if (!user?.email) {
-      // Trigger login popup
-      window.dispatchEvent(
-        new CustomEvent("bacaxita:login-popup", { detail: { force: true } })
-      );
+      window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { force: true } }));
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5050/api/headshop";
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5050/api/headshop";
 
-      // Create order
-      const orderResponse = await fetch(`${API_BASE}/orders`, {
+      const orderResponse = await fetch(`${apiBase}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,13 +99,9 @@ const CartSidebar = () => {
 
       const order = await orderResponse.json();
       const orderId = order.id;
+      if (!orderId) throw new Error("Pedido sem ID");
 
-      if (!orderId) {
-        throw new Error("Pedido sem ID");
-      }
-
-      // Get payment link
-      const paymentResponse = await fetch(`${API_BASE}/payments/mercadopago/preference`, {
+      const paymentResponse = await fetch(`${apiBase}/payments/mercadopago/preference`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -152,126 +124,113 @@ const CartSidebar = () => {
         throw new Error(`Erro ao gerar link: ${errText}`);
       }
 
-      const pref = await paymentResponse.json();
-      const checkoutUrl = pref.init_point || pref.sandbox_init_point;
+      const preference = await paymentResponse.json();
+      const checkoutUrl = preference.init_point || preference.sandbox_init_point;
+      if (!checkoutUrl) throw new Error("URL de pagamento indisponivel");
 
-      if (!checkoutUrl) {
-        throw new Error("URL de pagamento não disponível");
-      }
-
-      // Open payment in new window
       window.open(checkoutUrl, "_blank");
       setIsOpen(false);
       clearCart();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro ao processar pedido";
+    } catch (checkoutError) {
+      const message =
+        checkoutError instanceof Error ? checkoutError.message : "Erro ao processar pedido";
       setError(message);
-      console.error("[CartSidebar] Checkout error:", err);
+      console.error("[CartSidebar] Checkout error:", checkoutError);
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const goToCheckoutPage = () => {
+    setIsOpen(false);
+    window.location.href = "/checkout";
   };
 
   if (!isOpen) return null;
 
   return (
     <>
-      {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
         onClick={() => setIsOpen(false)}
         aria-hidden="true"
       />
 
-      {/* Cart Sidebar */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-card z-50 shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-header">
+      <div className="fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-card shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border bg-header p-4">
           <div className="flex items-center gap-2 text-header-foreground">
-            <ShoppingBag className="w-5 h-5" />
-            <h2 className="font-display font-bold tracking-wider text-lg">SACOLA</h2>
+            <ShoppingBag className="h-5 w-5" />
+            <h2 className="font-display text-lg font-bold tracking-wider">SACOLA</h2>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-header-foreground hover:opacity-75 transition-opacity"
+            className="text-header-foreground transition-opacity hover:opacity-75"
             aria-label="Fechar sacola"
           >
-            <X className="w-6 h-6" />
+            <X className="h-6 w-6" />
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {normalizedItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <ShoppingBag className="w-16 h-16 text-muted-foreground/20 mb-4" />
-              <p className="font-medium text-foreground mb-2">Sua sacola está vazia</p>
-              <p className="text-sm text-muted-foreground">
-                Adicione produtos para continuar suas compras
-              </p>
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <ShoppingBag className="mb-4 h-16 w-16 text-muted-foreground/20" />
+              <p className="mb-2 font-medium text-foreground">Sua sacola esta vazia</p>
+              <p className="text-sm text-muted-foreground">Adicione produtos para continuar suas compras</p>
             </div>
           ) : (
             <div className="space-y-3">
               {normalizedItems.map((item) => (
                 <div
                   key={`cart-item-${item.id}`}
-                  className="flex gap-3 p-3 bg-muted/40 rounded-lg border border-border/50 hover:border-accent/30 transition-colors"
+                  className="flex gap-3 rounded-lg border border-border/50 bg-muted/40 p-3 transition-colors hover:border-accent/30"
                 >
-                  {/* Product Image */}
-                  <div className="w-16 h-16 flex-shrink-0 rounded-md bg-muted/60 flex items-center justify-center overflow-hidden">
+                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/60">
                     {item.image ? (
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover"
                         loading="lazy"
                         decoding="async"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
                         }}
                       />
                     ) : (
-                      <ShoppingBag className="w-6 h-6 text-muted-foreground/50" />
+                      <ShoppingBag className="h-6 w-6 text-muted-foreground/50" />
                     )}
                   </div>
 
-                  {/* Product Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm text-foreground truncate">
-                      {item.name}
-                    </h3>
-                    <p className="text-accent font-bold text-sm mt-1">
-                      {formatPrice(item.price, { decimals: 2 })}
-                    </p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-medium text-foreground">{item.name}</h3>
+                    <p className="mt-1 text-sm font-bold text-accent">{formatPrice(item.price, { decimals: 2 })}</p>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="mt-2 flex items-center gap-2">
                       <button
                         onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        className="w-6 h-6 flex items-center justify-center bg-background border border-border rounded hover:bg-muted transition-colors"
+                        className="flex h-6 w-6 items-center justify-center rounded border border-border bg-background transition-colors hover:bg-muted"
                         aria-label="Diminuir quantidade"
                         disabled={isProcessing}
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="h-3 w-3" />
                       </button>
-                      <span className="w-5 text-center text-xs font-bold text-foreground">
-                        {item.quantity}
-                      </span>
+                      <span className="w-5 text-center text-xs font-bold text-foreground">{item.quantity}</span>
                       <button
                         onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        className="w-6 h-6 flex items-center justify-center bg-background border border-border rounded hover:bg-muted transition-colors"
+                        className="flex h-6 w-6 items-center justify-center rounded border border-border bg-background transition-colors hover:bg-muted"
                         aria-label="Aumentar quantidade"
                         disabled={isProcessing}
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="h-3 w-3" />
                       </button>
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="ml-auto text-destructive/60 hover:text-destructive transition-colors p-1"
+                        className="ml-auto p-1 text-destructive/60 transition-colors hover:text-destructive"
                         aria-label="Remover item"
                         disabled={isProcessing}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -281,52 +240,43 @@ const CartSidebar = () => {
           )}
         </div>
 
-        {/* Footer */}
         {normalizedItems.length > 0 && (
-          <div className="border-t border-border p-4 bg-muted/20 space-y-3">
-            {error && (
-              <div className="flex gap-2 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="space-y-3 border-t border-border bg-muted/20 p-4">
+            {error ? (
+              <div className="flex gap-2 rounded border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-600">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
-            )}
+            ) : null}
 
-            {/* Subtotal - Debugging */}
-            {normalizedItems.length > 0 && (
-              <div className="text-xs text-muted-foreground/70 space-y-1">
-                <p>
-                  {normalizedItems.length} item(s) • Preço unit: {formatPrice(
-                    normalizedItems[0].price,
-                    { decimals: 2 }
-                  )}
-                </p>
-              </div>
-            )}
-
-            {/* Total */}
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <span className="font-medium text-foreground">Total:</span>
-              <span className="text-lg font-bold text-accent">
-                {formatPrice(totalPrice, { decimals: 2 })}
-              </span>
+              <span className="text-lg font-bold text-accent">{formatPrice(totalPrice, { decimals: 2 })}</span>
             </div>
 
-            {/* Checkout Button */}
             <Button
-              className="w-full bg-rasta-green hover:bg-rasta-green/90 text-white font-semibold disabled:opacity-50"
+              className="w-full bg-rasta-green font-semibold text-white hover:bg-rasta-green/90 disabled:opacity-50"
               onClick={handleCheckout}
               disabled={isProcessing || normalizedItems.length === 0}
             >
               {isProcessing ? "Processando..." : "Finalizar Pedido"}
             </Button>
 
-            {/* Clear Cart Button */}
+            <Button
+              variant="outline"
+              onClick={goToCheckoutPage}
+              disabled={isProcessing || normalizedItems.length === 0}
+              className="w-full"
+            >
+              Escolher forma de pagamento
+            </Button>
+
             <button
               onClick={() => {
                 clearCart();
                 setIsOpen(false);
               }}
-              className="w-full text-xs text-muted-foreground hover:text-foreground py-2 transition-colors disabled:opacity-50"
+              className="w-full py-2 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
               disabled={isProcessing}
             >
               Limpar sacola
@@ -334,7 +284,6 @@ const CartSidebar = () => {
           </div>
         )}
 
-        {/* Rasta stripe accent */}
         <div className="h-1 bg-gradient-to-r from-rasta-green via-rasta-yellow to-rasta-red" />
       </div>
     </>
