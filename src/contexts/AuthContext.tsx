@@ -23,7 +23,7 @@ interface AuthContextType {
   register: (payload: RegisterPayload) => Promise<{ ok: boolean; verificationCode?: string; error?: string }>;
   verifyEmail: (email: string, code: string) => Promise<{ ok: boolean; error?: string }>;
   resendVerification: (email: string) => Promise<{ ok: boolean; verificationCode?: string; error?: string }>;
-  googleLogin: (idToken: string) => Promise<{ ok: boolean; needsRegistration?: boolean; email?: string; name?: string; error?: string }>;
+  googleLogin: (payload: { idToken?: string; accessToken?: string }) => Promise<{ ok: boolean; needsRegistration?: boolean; email?: string; name?: string; error?: string }>;
   logout: () => void;
 }
 
@@ -149,12 +149,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const googleLogin = async (idToken: string) => {
+  const googleLogin = async (payload: { idToken?: string; accessToken?: string }) => {
     try {
       const response = await fetch(joinUrl(API_BASE, "/auth/google"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json().catch(() => null);

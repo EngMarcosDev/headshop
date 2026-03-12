@@ -172,6 +172,44 @@ const SignupPopup = () => {
     });
   };
 
+  const requestGoogleAccessToken = async (clientId: string) => {
+    await loadGoogleScript();
+
+    return new Promise<string>((resolve, reject) => {
+      const oauth2 = window.google?.accounts?.oauth2;
+      if (!oauth2?.initTokenClient) {
+        reject(new Error("Google OAuth indisponivel no navegador."));
+        return;
+      }
+
+      let settled = false;
+      const finish = (fn: () => void) => {
+        if (settled) return;
+        settled = true;
+        fn();
+      };
+
+      const tokenClient = oauth2.initTokenClient({
+        client_id: clientId,
+        scope: "openid email profile",
+        callback: (response: any) => {
+          const token = String(response?.access_token || "").trim();
+          if (!token) {
+            finish(() => reject(new Error("Nao foi possivel obter token Google.")));
+            return;
+          }
+          finish(() => resolve(token));
+        },
+      });
+
+      try {
+        tokenClient.requestAccessToken({ prompt: "consent" });
+      } catch {
+        finish(() => reject(new Error("Falha ao abrir autenticacao Google.")));
+      }
+    });
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -293,9 +331,40 @@ const SignupPopup = () => {
         return;
       }
 
-      const idToken = await requestGoogleCredential(clientId);
-      const result = await googleLogin(idToken);
+      let result:
+        | { ok: boolean; needsRegistration?: boolean; email?: string; name?: string; error?: string }
+        | null = null;
+
+      try {
+        const idToken = await requestGoogleCredential(clientId);
+        result = await googleLogin({ idToken });
+      } catch {
+        const accessToken = await requestGoogleAccessToken(clientId);
+        result = await googleLogin({ accessToken });
+      }
+
+      if (!result) {
+        setError({ message: "Nao foi possivel entrar com Google." });
+        return;
+      }
+
       if (!result.ok) {
+        if (result.needsRegistration) {
+          const fullName = String(result.name || "").trim();
+          const parts = fullName.split(" ").filter(Boolean);
+          const firstName = parts.shift() || "Cliente";
+          const lastName = parts.join(" ") || "Google";
+          setRegFirstName(firstName);
+          setRegLastName(lastName);
+          setRegEmail(String(result.email || "").trim().toLowerCase());
+          setRegPassword("");
+          setRegConfirm("");
+          setMode("register");
+          setError({
+            message: "Conta Google ainda nao criada aqui. Complete o cadastro para continuar.",
+          });
+          return;
+        }
         setError({ message: result.error || "Nao foi possivel entrar com Google." });
         return;
       }
