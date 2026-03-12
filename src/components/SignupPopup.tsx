@@ -1,6 +1,5 @@
-﻿import { useEffect, useRef, useState } from "react";
-import { Eye, EyeOff, X, AlertCircle } from "lucide-react";
-import { useCart } from "@/contexts/CartContext";
+﻿import { useEffect, useState } from "react";
+import { AlertCircle, Eye, EyeOff, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -16,23 +15,19 @@ interface FormError {
   message: string;
 }
 
-const COOKIE_STORAGE_KEY = "bacaxita_cookie_preferences";
-const LOGIN_PROMPT_SEEN_KEY = "bacaxita_login_prompt_seen";
+type PopupMode = "login" | "register" | "verify";
 
 const SignupPopup = () => {
-  const { totalItems } = useCart();
-  const { user, login, register, verifyEmail, resendVerification, googleLogin } = useAuth();
+  const { user, login, register, verifyEmail, googleLogin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [mode, setMode] = useState<"login" | "register" | "verify">("login");
+  const [mode, setMode] = useState<PopupMode>("login");
   const [error, setError] = useState<FormError | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Login form
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
-  // Register form
   const [regFirstName, setRegFirstName] = useState("");
   const [regLastName, setRegLastName] = useState("");
   const [regPhone, setRegPhone] = useState("");
@@ -42,71 +37,30 @@ const SignupPopup = () => {
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirm, setShowRegConfirm] = useState(false);
 
-  // Verify form
   const [verifyEmailAddr, setVerifyEmailAddr] = useState("");
   const [verifyCode, setVerifyCode] = useState("");
 
-  const timerRef = useRef<number | null>(null);
-  const prevTotalItemsRef = useRef<number>(totalItems);
   const isLogged = Boolean(user?.email && user?.token);
-  const hasCookieChoice = () => Boolean(window.localStorage.getItem(COOKIE_STORAGE_KEY));
-  const hasSeenLoginPrompt = () => Boolean(window.localStorage.getItem(LOGIN_PROMPT_SEEN_KEY));
 
-  const openPopup = (force = false) => {
+  const openPopup = (targetMode: "login" | "register" = "login") => {
     if (isLogged) return;
-    if (!force && !hasCookieChoice()) return;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (force) {
-      setMode("login");
-      setError(null);
-    }
+    setMode(targetMode);
+    setError(null);
     setIsOpen(true);
   };
 
-  // Auto-open popup on signup
-  useEffect(() => {
-    if (isLogged) return;
-    if (!hasCookieChoice()) return;
-    if (hasSeenLoginPrompt()) return;
-    timerRef.current = window.setTimeout(() => openPopup(false), 4000);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [user?.email, isLogged]);
-
-  // Auto-open popup on add to cart
-  useEffect(() => {
-    if (!isLogged && totalItems > prevTotalItemsRef.current) {
-      openPopup(false);
-    }
-    prevTotalItemsRef.current = totalItems;
-  }, [totalItems, isLogged]);
-
-  useEffect(() => {
-    const onCookieChoice = () => {
-      if (isLogged) return;
-      window.setTimeout(() => openPopup(false), 500);
-    };
-
-    window.addEventListener("bacaxita:cookie-choice", onCookieChoice as EventListener);
-    return () => {
-      window.removeEventListener("bacaxita:cookie-choice", onCookieChoice as EventListener);
-    };
-  }, [isLogged]);
-
-  // Listen for popup trigger
   useEffect(() => {
     const onTrigger = (event: Event) => {
-      const detail = (event as CustomEvent<{ force?: boolean }>).detail;
-      openPopup(Boolean(detail?.force));
+      const detail = (event as CustomEvent<{ mode?: "login" | "register" }>).detail;
+      openPopup(detail?.mode === "register" ? "register" : "login");
     };
+
     window.addEventListener("bacaxita:login-popup", onTrigger as EventListener);
     return () => {
       window.removeEventListener("bacaxita:login-popup", onTrigger as EventListener);
     };
   }, [isLogged]);
 
-  // Close popup on login
   useEffect(() => {
     if (isLogged && isOpen) setIsOpen(false);
   }, [isLogged, isOpen]);
@@ -117,9 +71,6 @@ const SignupPopup = () => {
         detail: { open: isOpen },
       })
     );
-    if (isOpen) {
-      window.localStorage.setItem(LOGIN_PROMPT_SEEN_KEY, "1");
-    }
   }, [isOpen]);
 
   const normalizeEmail = (email: string) => {
@@ -260,8 +211,9 @@ const SignupPopup = () => {
         setError({ message: "E-mail ou senha incorretos" });
         return;
       }
+
       setIsOpen(false);
-    } catch (err) {
+    } catch {
       setError({ message: "Erro ao fazer login" });
     } finally {
       setLoading(false);
@@ -286,11 +238,11 @@ const SignupPopup = () => {
         return;
       }
       if (password.length < 8) {
-        setError({ message: "Senha deve ter no mínimo 8 caracteres" });
+        setError({ message: "Senha deve ter no minimo 8 caracteres" });
         return;
       }
       if (password !== confirm) {
-        setError({ message: "As senhas não conferem" });
+        setError({ message: "As senhas nao conferem" });
         return;
       }
 
@@ -311,11 +263,11 @@ const SignupPopup = () => {
       setVerifyEmailAddr(email);
       setMode("verify");
       setError(
-        result.verificationCode 
-          ? { message: `Código: ${result.verificationCode}` } 
-          : { message: "Código enviado para seu e-mail" }
+        result.verificationCode
+          ? { message: `Codigo: ${result.verificationCode}` }
+          : { message: "Codigo enviado para seu e-mail" }
       );
-    } catch (err) {
+    } catch {
       setError({ message: "Erro ao criar conta" });
     } finally {
       setLoading(false);
@@ -329,23 +281,23 @@ const SignupPopup = () => {
 
     try {
       if (!verifyEmailAddr || !verifyCode.trim()) {
-        setError({ message: "Preencha o código" });
+        setError({ message: "Preencha o codigo" });
         return;
       }
 
       const result = await verifyEmail(verifyEmailAddr, verifyCode.trim());
       if (!result.ok) {
-        setError({ message: result.error || "Código inválido" });
+        setError({ message: result.error || "Codigo invalido" });
         return;
       }
 
-      setError({ message: "E-mail verificado! Faça login para continuar" });
-      setTimeout(() => {
+      setError({ message: "E-mail verificado! Faca login para continuar" });
+      window.setTimeout(() => {
         setMode("login");
         setLoginEmail(verifyEmailAddr);
         setVerifyCode("");
       }, 1500);
-    } catch (err) {
+    } catch {
       setError({ message: "Erro ao verificar e-mail" });
     } finally {
       setLoading(false);
@@ -396,6 +348,7 @@ const SignupPopup = () => {
           });
           return;
         }
+
         setError({ message: result.error || "Nao foi possivel entrar com Google." });
         return;
       }
@@ -413,12 +366,9 @@ const SignupPopup = () => {
 
   return (
     <>
-      <div
-        className="fixed inset-0 bg-black/70 z-40 backdrop-blur-sm"
-        onClick={() => setIsOpen(false)}
-      />
+      <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
 
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-sm bg-card rounded-lg border border-border z-50 shadow-xl overflow-hidden">
+      <div className="fixed top-1/2 left-1/2 z-50 w-[95%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border bg-card shadow-xl">
         <div className="h-1 bg-gradient-to-r from-rasta-green via-rasta-yellow to-rasta-red" />
 
         <div className="p-6">
@@ -426,42 +376,36 @@ const SignupPopup = () => {
             onClick={() => setIsOpen(false)}
             className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
 
-          <h2 className="text-xl font-bold mb-3 text-foreground">
+          <h2 className="mb-3 text-xl font-bold text-foreground">
             {mode === "login" ? "Efetue seu Login" : mode === "register" ? "Efetue seu Cadastro" : "Verificar E-mail"}
           </h2>
 
           {mode === "login" && (
-            <div className="bg-muted rounded p-2 mb-4 text-xs text-foreground">
-              <p>Me parece que você é novo aqui!</p>
-              <p className="text-muted-foreground mt-1">Cadastre-se e receba 5% de desconto na primeira compra.</p>
+            <div className="mb-4 rounded bg-muted p-2 text-xs text-foreground">
+              <p>Me parece que voce e novo aqui!</p>
+              <p className="mt-1 text-muted-foreground">Cadastre-se e receba 5% de desconto na primeira compra.</p>
             </div>
           )}
 
           {mode === "register" && (
-            <div className="bg-muted rounded p-2 mb-4 text-xs text-foreground">
-              <p>É realmente uma maravilha ter você conosco.</p>
+            <div className="mb-4 rounded bg-muted p-2 text-xs text-foreground">
+              <p>E realmente uma maravilha ter voce conosco.</p>
             </div>
           )}
 
           {error && (
-            <div className="mb-3 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-600 flex gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div className="mb-3 flex gap-2 rounded border border-red-500/20 bg-red-500/10 p-2 text-xs text-red-600">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>{error.message}</span>
             </div>
           )}
 
           {mode === "login" && (
             <form onSubmit={handleLoginSubmit} className="space-y-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full text-sm"
-                onClick={handleGoogleLogin}
-                disabled={loading}
-              >
+              <Button type="button" variant="outline" className="w-full text-sm" onClick={handleGoogleLogin} disabled={loading}>
                 {loading ? "Conectando..." : "Entrar com Google"}
               </Button>
 
@@ -481,18 +425,14 @@ const SignupPopup = () => {
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   disabled={loading}
-                  className="text-sm pr-10"
+                  className="pr-10 text-sm"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  className="absolute right-3 top-2.5"
-                >
-                  {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-3 top-2.5">
+                  {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
 
-              <Button type="submit" className="w-full bg-rasta-green hover:bg-rasta-green/90 text-sm" disabled={loading}>
+              <Button type="submit" className="w-full bg-rasta-green text-sm hover:bg-rasta-green/90" disabled={loading}>
                 {loading ? "Entrando..." : "Entrar"}
               </Button>
 
@@ -513,39 +453,13 @@ const SignupPopup = () => {
           {mode === "register" && (
             <form onSubmit={handleRegisterSubmit} className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
-                <Input
-                  placeholder="Nome"
-                  value={regFirstName}
-                  onChange={(e) => setRegFirstName(e.target.value)}
-                  disabled={loading}
-                  className="text-sm"
-                />
-                <Input
-                  placeholder="Sobrenome"
-                  value={regLastName}
-                  onChange={(e) => setRegLastName(e.target.value)}
-                  disabled={loading}
-                  className="text-sm"
-                />
+                <Input placeholder="Nome" value={regFirstName} onChange={(e) => setRegFirstName(e.target.value)} disabled={loading} className="text-sm" />
+                <Input placeholder="Sobrenome" value={regLastName} onChange={(e) => setRegLastName(e.target.value)} disabled={loading} className="text-sm" />
               </div>
 
-              <Input
-                type="tel"
-                placeholder="Telefone"
-                value={regPhone}
-                onChange={(e) => setRegPhone(e.target.value)}
-                disabled={loading}
-                className="text-sm"
-              />
+              <Input type="tel" placeholder="Telefone" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} disabled={loading} className="text-sm" />
 
-              <Input
-                type="email"
-                placeholder="E-mail"
-                value={regEmail}
-                onChange={(e) => setRegEmail(e.target.value)}
-                disabled={loading}
-                className="text-sm"
-              />
+              <Input type="email" placeholder="E-mail" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} disabled={loading} className="text-sm" />
 
               <div className="relative">
                 <Input
@@ -554,14 +468,10 @@ const SignupPopup = () => {
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
                   disabled={loading}
-                  className="text-sm pr-10"
+                  className="pr-10 text-sm"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowRegPassword(!showRegPassword)}
-                  className="absolute right-3 top-2.5"
-                >
-                  {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <button type="button" onClick={() => setShowRegPassword(!showRegPassword)} className="absolute right-3 top-2.5">
+                  {showRegPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
 
@@ -572,18 +482,14 @@ const SignupPopup = () => {
                   value={regConfirm}
                   onChange={(e) => setRegConfirm(e.target.value)}
                   disabled={loading}
-                  className="text-sm pr-10"
+                  className="pr-10 text-sm"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowRegConfirm(!showRegConfirm)}
-                  className="absolute right-3 top-2.5"
-                >
-                  {showRegConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <button type="button" onClick={() => setShowRegConfirm(!showRegConfirm)} className="absolute right-3 top-2.5">
+                  {showRegConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
 
-              <Button type="submit" className="w-full bg-rasta-green hover:bg-rasta-green/90 text-sm" disabled={loading}>
+              <Button type="submit" className="w-full bg-rasta-green text-sm hover:bg-rasta-green/90" disabled={loading}>
                 {loading ? "Criando..." : "Criar conta"}
               </Button>
 
@@ -596,7 +502,7 @@ const SignupPopup = () => {
                 }}
                 disabled={loading}
               >
-                Já tenho conta
+                Ja tenho conta
               </button>
             </form>
           )}
@@ -604,14 +510,14 @@ const SignupPopup = () => {
           {mode === "verify" && (
             <form onSubmit={handleVerifySubmit} className="space-y-3">
               <Input
-                placeholder="Código"
+                placeholder="Codigo"
                 value={verifyCode}
                 onChange={(e) => setVerifyCode(e.target.value)}
                 disabled={loading}
                 className="text-sm"
               />
 
-              <Button type="submit" className="w-full bg-rasta-green hover:bg-rasta-green/90 text-sm" disabled={loading}>
+              <Button type="submit" className="w-full bg-rasta-green text-sm hover:bg-rasta-green/90" disabled={loading}>
                 {loading ? "Verificando..." : "Verificar"}
               </Button>
 

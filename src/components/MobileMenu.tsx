@@ -31,6 +31,11 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
     applyTheme(mode);
   };
 
+  const openAuth = (mode: "login" | "register") => {
+    window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { mode } }));
+    onClose();
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     setTheme(readCurrentTheme());
@@ -103,6 +108,25 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
         </div>
 
         <nav className="flex flex-col gap-1 p-4">
+          {!user?.email ? (
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => openAuth("login")}
+                className="rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuth("register")}
+                className="rounded-lg border border-rasta-yellow/35 bg-rasta-yellow/15 px-3 py-2 text-sm font-medium text-rasta-yellow transition hover:bg-rasta-yellow/25"
+              >
+                Sign up
+              </button>
+            </div>
+          ) : null}
+
           {links.map((link, index) => (
             <Link
               key={link.name}

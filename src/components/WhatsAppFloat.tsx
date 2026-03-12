@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
-import { Instagram, MessageCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Compass, Instagram, MessageCircle, X } from "lucide-react";
+
+type SocialId = "whatsapp" | "instagram" | "tour";
 
 type SocialTarget = {
-  id: "whatsapp" | "instagram";
+  id: SocialId;
   label: string;
   href: string;
   gradient: string;
@@ -11,6 +13,13 @@ type SocialTarget = {
 
 const SOCIALS: SocialTarget[] = [
   {
+    id: "whatsapp",
+    label: "Fale no WhatsApp",
+    href: "https://wa.me/5581981705445",
+    gradient: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+    icon: <MessageCircle className="h-7 w-7 fill-white text-white" />,
+  },
+  {
     id: "instagram",
     label: "Abrir Instagram",
     href: "https://instagram.com/bacaxita",
@@ -18,13 +27,15 @@ const SOCIALS: SocialTarget[] = [
     icon: <Instagram className="h-7 w-7 text-white" />,
   },
   {
-    id: "whatsapp",
-    label: "Fale no WhatsApp",
-    href: "https://wa.me/5581981705445",
-    gradient: "linear-gradient(135deg, #25D366, #128C7E)",
-    icon: <MessageCircle className="h-7 w-7 fill-white text-white" />,
+    id: "tour",
+    label: "Tour assistido (em breve)",
+    href: "/#tour-assistido",
+    gradient: "linear-gradient(135deg, #8a5a3a 0%, #6b3f27 100%)",
+    icon: <Compass className="h-7 w-7 text-white" />,
   },
 ];
+
+const BLINK_AND_SWITCH_MS = 2200;
 
 interface WhatsAppFloatProps {
   visible?: boolean;
@@ -32,30 +43,77 @@ interface WhatsAppFloatProps {
 
 const WhatsAppFloat = ({ visible = true }: WhatsAppFloatProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [blinkSeed, setBlinkSeed] = useState(0);
+  const [firstLoopDone, setFirstLoopDone] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const firstLoopRef = useRef(false);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % SOCIALS.length);
-    }, 4500);
+    if (dismissed) return;
 
-    return () => window.clearInterval(timer);
-  }, []);
+    let timeoutId = 0;
+    const runLoop = () => {
+      setBlinkSeed((value) => value + 1);
+      timeoutId = window.setTimeout(() => {
+        setActiveIndex((current) => {
+          const next = (current + 1) % SOCIALS.length;
+          if (!firstLoopRef.current && current === SOCIALS.length - 1) {
+            firstLoopRef.current = true;
+            setFirstLoopDone(true);
+          }
+          return next;
+        });
+        runLoop();
+      }, BLINK_AND_SWITCH_MS);
+    };
+
+    runLoop();
+    return () => window.clearTimeout(timeoutId);
+  }, [dismissed]);
+
+  if (dismissed) return null;
 
   const activeSocial = SOCIALS[activeIndex];
 
   return (
-    <a
-      href={activeSocial.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={activeSocial.label}
-      className={`fixed bottom-4 right-4 z-50 flex h-[52px] w-[52px] items-center justify-center rounded-full shadow-lg transition-all duration-500 hover:scale-110 hover:shadow-xl sm:bottom-6 sm:right-6 sm:h-14 sm:w-14 ${
+    <div
+      className={`fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6 ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
-      }`}
-      style={{ background: activeSocial.gradient }}
+      } transition-all duration-700`}
     >
-      {activeSocial.icon}
-    </a>
+      <a
+        key={`${activeSocial.id}-${blinkSeed}`}
+        href={activeSocial.href}
+        target={activeSocial.id === "tour" ? undefined : "_blank"}
+        rel={activeSocial.id === "tour" ? undefined : "noopener noreferrer"}
+        aria-label={activeSocial.label}
+        title={activeSocial.label}
+        onClick={(event) => {
+          if (activeSocial.id === "tour") {
+            event.preventDefault();
+          }
+        }}
+        className="social-float-blink flex h-[52px] w-[52px] items-center justify-center rounded-full shadow-lg transition-transform duration-300 hover:scale-110 hover:shadow-xl sm:h-14 sm:w-14"
+        style={{ background: activeSocial.gradient }}
+      >
+        {activeSocial.icon}
+      </a>
+
+      {firstLoopDone ? (
+        <button
+          type="button"
+          aria-label="Fechar atalhos sociais"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setDismissed(true);
+          }}
+          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/50 bg-black/65 text-white transition hover:bg-black/80"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      ) : null}
+    </div>
   );
 };
 

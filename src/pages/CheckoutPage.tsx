@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Copy, QrCode } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -92,10 +92,6 @@ const CheckoutPage = () => {
     loadPixDiagnostic();
   }, []);
 
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-
   const handleStartPayment = async () => {
     setError(null);
 
@@ -106,6 +102,7 @@ const CheckoutPage = () => {
 
     if (!user?.email) {
       setError("Faca login para continuar.");
+      window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { mode: "login" } }));
       return;
     }
 

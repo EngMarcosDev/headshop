@@ -234,6 +234,10 @@
     box-shadow: 0 8px 20px -12px rgb(193 53 132 / 0.9);
   }
 
+  .social-float-blink {
+    animation: social-float-blink 0.44s ease-in-out 3;
+  }
+
   .news-banner {
     width: 100vw;
     margin-left: calc(50% - 50vw);
@@ -425,5 +429,17 @@
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgb(245 175 35 / 0);
+  }
+}
+
+@keyframes social-float-blink {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  45% {
+    transform: scale(1.08);
+    filter: brightness(1.28);
   }
 }

@@ -55,7 +55,7 @@ const CartSidebar = () => {
   const handleCheckout = () => {
     if (normalizedItems.length === 0) return;
     if (!user?.email) {
-      window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { force: true } }));
+      window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { mode: "login" } }));
       return;
     }
 

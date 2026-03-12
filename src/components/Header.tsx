@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Menu, ShoppingBag, User } from "lucide-react";
+import { Menu, ShoppingBag } from "lucide-react";
 import { Button } from "./ui/button";
 import MobileMenu from "./MobileMenu";
 import { useCart } from "@/contexts/CartContext";
@@ -27,8 +27,8 @@ const Header = () => {
     };
   }, []);
 
-  const triggerLogin = () => {
-    window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { force: true } }));
+  const triggerAuth = (mode: "login" | "register") => {
+    window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { mode } }));
   };
 
   return (
@@ -51,15 +51,24 @@ const Header = () => {
                   Sair
                 </Button>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={triggerLogin}
-                  className="flex h-8 items-center gap-1 px-1.5 text-[10px] uppercase tracking-[0.1em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground sm:px-2 sm:text-[11px] sm:tracking-wider"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Login / Sign up</span>
-                </Button>
+                <div className="hidden items-center gap-1 sm:flex">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => triggerAuth("login")}
+                    className="h-8 px-2 text-[11px] uppercase tracking-[0.1em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground"
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => triggerAuth("register")}
+                    className="h-8 px-2 text-[11px] uppercase tracking-[0.1em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground"
+                  >
+                    Sign up
+                  </Button>
+                </div>
               )}
 
               <Button
