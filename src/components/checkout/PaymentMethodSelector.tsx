@@ -16,7 +16,7 @@ const methods: Array<{
 }> = [
   { id: "credit", label: "Credito", description: "Parcelamento no checkout MP", icon: CreditCard },
   { id: "debit", label: "Debito", description: "Pagamento online", icon: Landmark },
-  { id: "pix", label: "PIX", description: "Aprovacao rapida", icon: Smartphone },
+  { id: "pix", label: "PIX", description: "QR Code gerado nesta tela", icon: Smartphone },
   { id: "boleto", label: "Boleto", description: "Pagamento em ate 3 dias", icon: FileText },
 ];
 

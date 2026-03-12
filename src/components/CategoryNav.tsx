@@ -1,10 +1,11 @@
-﻿import { Cigarette, Coffee, Filter, Package, Sparkles } from "lucide-react";
+import { Cigarette, Coffee, Filter, Flame, Package, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const categories = [
   { name: "Sedas", icon: Cigarette, href: "/categoria/sedas" },
-  { name: "Cuia", icon: Coffee, href: "/categoria/cuia" },
-  { name: "Piteira", icon: Filter, href: "/categoria/piteira" },
+  { name: "Piteiras", icon: Filter, href: "/categoria/piteira" },
+  { name: "Fumigenos", icon: Flame, href: "/categoria/fumigenos" },
+  { name: "Cuias", icon: Coffee, href: "/categoria/cuia" },
   { name: "BacaKits", icon: Package, href: "/categoria/bacakits" },
   { name: "Acessorios", icon: Sparkles, href: "/categoria/acessorios" },
 ];

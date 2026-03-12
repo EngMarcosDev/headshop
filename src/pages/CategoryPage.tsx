@@ -24,8 +24,8 @@ import {
 const categoryNames: Record<string, string> = {
   bacakits: "BacaKits",
   sedas: "Sedas",
-  piteira: "Piteira",
-  cuia: "Cuia",
+  piteira: "Piteiras",
+  cuia: "Cuias",
   acessorios: "Acessorios",
   fumigenos: "Fumígenos",
 };

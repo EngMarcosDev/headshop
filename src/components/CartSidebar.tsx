@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,8 +16,6 @@ const normalizeCartItem = (item: any) => ({
 const CartSidebar = () => {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, clearCart } = useCart();
   const { user } = useAuth();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const normalizedItems = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -54,94 +52,13 @@ const CartSidebar = () => {
     updateQuantity(id, newQuantity);
   };
 
-  const handleCheckout = async () => {
-    setError(null);
-
-    if (normalizedItems.length === 0) {
-      setError("Sua sacola esta vazia");
-      return;
-    }
-
+  const handleCheckout = () => {
+    if (normalizedItems.length === 0) return;
     if (!user?.email) {
       window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { force: true } }));
       return;
     }
 
-    setIsProcessing(true);
-
-    try {
-      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5050/api/headshop";
-
-      const orderResponse = await fetch(`${apiBase}/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(user?.token ? { Authorization: `Bearer ${user.token}` } : {}),
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          customer: {
-            name: user.name || user.email.split("@")[0],
-            email: user.email,
-          },
-          items: normalizedItems.map((item) => ({
-            productId: item.id,
-            quantity: item.quantity,
-            unitPrice: item.price,
-          })),
-        }),
-      });
-
-      if (!orderResponse.ok) {
-        const errText = await orderResponse.text();
-        throw new Error(`Erro ao criar pedido: ${errText}`);
-      }
-
-      const order = await orderResponse.json();
-      const orderId = order.id;
-      if (!orderId) throw new Error("Pedido sem ID");
-
-      const paymentResponse = await fetch(`${apiBase}/payments/mercadopago/preference`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(user?.token ? { Authorization: `Bearer ${user.token}` } : {}),
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          orderId,
-          payerEmail: user.email,
-          items: normalizedItems.map((item) => ({
-            title: item.name,
-            quantity: item.quantity,
-            unitPrice: item.price,
-          })),
-        }),
-      });
-
-      if (!paymentResponse.ok) {
-        const errText = await paymentResponse.text();
-        throw new Error(`Erro ao gerar link: ${errText}`);
-      }
-
-      const preference = await paymentResponse.json();
-      const checkoutUrl = preference.init_point || preference.sandbox_init_point;
-      if (!checkoutUrl) throw new Error("URL de pagamento indisponivel");
-
-      window.open(checkoutUrl, "_blank");
-      setIsOpen(false);
-      clearCart();
-    } catch (checkoutError) {
-      const message =
-        checkoutError instanceof Error ? checkoutError.message : "Erro ao processar pedido";
-      setError(message);
-      console.error("[CartSidebar] Checkout error:", checkoutError);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const goToCheckoutPage = () => {
     setIsOpen(false);
     window.location.href = "/checkout";
   };
@@ -211,7 +128,6 @@ const CartSidebar = () => {
                         onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                         className="flex h-6 w-6 items-center justify-center rounded border border-border bg-background transition-colors hover:bg-muted"
                         aria-label="Diminuir quantidade"
-                        disabled={isProcessing}
                       >
                         <Minus className="h-3 w-3" />
                       </button>
@@ -220,7 +136,6 @@ const CartSidebar = () => {
                         onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                         className="flex h-6 w-6 items-center justify-center rounded border border-border bg-background transition-colors hover:bg-muted"
                         aria-label="Aumentar quantidade"
-                        disabled={isProcessing}
                       >
                         <Plus className="h-3 w-3" />
                       </button>
@@ -228,7 +143,6 @@ const CartSidebar = () => {
                         onClick={() => removeItem(item.id)}
                         className="ml-auto p-1 text-destructive/60 transition-colors hover:text-destructive"
                         aria-label="Remover item"
-                        disabled={isProcessing}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -242,33 +156,17 @@ const CartSidebar = () => {
 
         {normalizedItems.length > 0 && (
           <div className="space-y-3 border-t border-border bg-muted/20 p-4">
-            {error ? (
-              <div className="flex gap-2 rounded border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-600">
-                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            ) : null}
-
             <div className="flex items-center justify-between">
               <span className="font-medium text-foreground">Total:</span>
               <span className="text-lg font-bold text-accent">{formatPrice(totalPrice, { decimals: 2 })}</span>
             </div>
 
             <Button
-              className="w-full bg-rasta-green font-semibold text-white hover:bg-rasta-green/90 disabled:opacity-50"
+              className="w-full bg-rasta-green font-semibold text-white hover:bg-rasta-green/90"
               onClick={handleCheckout}
-              disabled={isProcessing || normalizedItems.length === 0}
+              disabled={normalizedItems.length === 0}
             >
-              {isProcessing ? "Processando..." : "Finalizar Pedido"}
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={goToCheckoutPage}
-              disabled={isProcessing || normalizedItems.length === 0}
-              className="w-full"
-            >
-              Escolher forma de pagamento
+              Finalizar Pedido
             </Button>
 
             <button
@@ -276,8 +174,7 @@ const CartSidebar = () => {
                 clearCart();
                 setIsOpen(false);
               }}
-              className="w-full py-2 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-              disabled={isProcessing}
+              className="w-full py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               Limpar sacola
             </button>

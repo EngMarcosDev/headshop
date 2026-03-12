@@ -20,16 +20,9 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const links = [
     ...menuLinks,
-    { name: "Pagamento", href: "/checkout" },
-    ...(user
-      ? [
-          { name: "Minha Carteira", href: "/carteira" },
-          { name: "Historico de Compras", href: "/historico" },
-        ]
-      : []),
+    ...(user ? [{ name: "Historico de Compras", href: "/historico" }] : []),
   ];
-  const erpLoginUrl =
-    import.meta.env.VITE_ERP_URL || "http://localhost:8081/login";
+  const erpLoginUrl = import.meta.env.VITE_ERP_URL || "https://erp.bacaxita.com.br/login";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -96,16 +89,21 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
             </Link>
           ))}
           {user?.isAdmin && (
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href = erpLoginUrl;
-                onClose();
-              }}
-              className="text-header-foreground/90 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg text-base font-medium transition-all text-left"
-            >
-              ERP Bacaxita
-            </button>
+            <div className="mt-2 border-t border-white/10 pt-2">
+              <p className="px-4 py-1 text-[10px] uppercase tracking-[0.24em] text-header-foreground/55">
+                Admin
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = erpLoginUrl;
+                  onClose();
+                }}
+                className="w-full rounded-lg border border-rasta-yellow/35 bg-rasta-yellow/10 px-4 py-3 text-left text-base font-semibold text-rasta-yellow transition-all hover:bg-rasta-yellow/20 hover:text-white"
+              >
+                ERP Bacaxita
+              </button>
+            </div>
           )}
         </nav>
 

@@ -5,6 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 interface FormError {
   field?: string;
   message: string;
@@ -12,7 +18,7 @@ interface FormError {
 
 const SignupPopup = () => {
   const { totalItems } = useCart();
-  const { user, login, register, verifyEmail, resendVerification } = useAuth();
+  const { user, login, register, verifyEmail, resendVerification, googleLogin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<"login" | "register" | "verify">("login");
   const [error, setError] = useState<FormError | null>(null);
@@ -88,6 +94,82 @@ const SignupPopup = () => {
   const normalizeEmail = (email: string) => {
     const trimmed = email.trim().toLowerCase();
     return trimmed.endsWith("@gmail.cc") ? trimmed.replace("@gmail.cc", "@gmail.com") : trimmed;
+  };
+
+  const loadGoogleScript = async () => {
+    if (typeof window === "undefined") throw new Error("Janela indisponivel.");
+    if (window.google?.accounts?.id) return;
+
+    await new Promise<void>((resolve, reject) => {
+      const existing = document.querySelector('script[data-google-gsi="1"]') as HTMLScriptElement | null;
+      if (existing) {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(new Error("Falha ao carregar Google Identity.")), {
+          once: true,
+        });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.dataset.googleGsi = "1";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Falha ao carregar Google Identity."));
+      document.head.appendChild(script);
+    });
+  };
+
+  const requestGoogleCredential = async (clientId: string) => {
+    await loadGoogleScript();
+
+    return new Promise<string>((resolve, reject) => {
+      if (!window.google?.accounts?.id) {
+        reject(new Error("Google Identity nao disponivel."));
+        return;
+      }
+
+      let settled = false;
+      const finish = (fn: () => void) => {
+        if (settled) return;
+        settled = true;
+        fn();
+      };
+
+      const timeout = window.setTimeout(() => {
+        finish(() => reject(new Error("Nao foi possivel obter credencial Google.")));
+      }, 30000);
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response: any) => {
+          window.clearTimeout(timeout);
+          const credential = String(response?.credential || "").trim();
+          if (!credential) {
+            finish(() => reject(new Error("Resposta Google sem credencial.")));
+            return;
+          }
+          finish(() => resolve(credential));
+        },
+        ux_mode: "popup",
+        auto_select: false,
+      });
+
+      window.google.accounts.id.prompt((notification: any) => {
+        const notDisplayed = typeof notification?.isNotDisplayed === "function" && notification.isNotDisplayed();
+        const skipped = typeof notification?.isSkippedMoment === "function" && notification.isSkippedMoment();
+        const dismissed =
+          typeof notification?.isDismissedMoment === "function" &&
+          notification.isDismissedMoment() &&
+          String(notification?.getDismissedReason?.() || "").toLowerCase() !== "credential_returned";
+
+        if (notDisplayed || skipped || dismissed) {
+          window.clearTimeout(timeout);
+          finish(() => reject(new Error("Login Google cancelado ou bloqueado pelo navegador.")));
+        }
+      });
+    });
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -202,7 +284,29 @@ const SignupPopup = () => {
   };
 
   const handleGoogleLogin = async () => {
-    // Google login disabled - use internal authentication only
+    setError(null);
+    setLoading(true);
+    try {
+      const clientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
+      if (!clientId) {
+        setError({ message: "Google OAuth nao configurado no frontend." });
+        return;
+      }
+
+      const idToken = await requestGoogleCredential(clientId);
+      const result = await googleLogin(idToken);
+      if (!result.ok) {
+        setError({ message: result.error || "Nao foi possivel entrar com Google." });
+        return;
+      }
+
+      setIsOpen(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Falha ao entrar com Google.";
+      setError({ message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -414,6 +518,10 @@ const SignupPopup = () => {
               <button
                 type="button"
                 className="w-full text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setMode("login");
+                  setError(null);
+                }}
                 disabled={loading}
               >
                 Voltar
@@ -427,4 +535,3 @@ const SignupPopup = () => {
 };
 
 export default SignupPopup;
-

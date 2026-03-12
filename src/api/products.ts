@@ -12,11 +12,24 @@ const unwrapList = <T,>(payload: ApiListResponse<T> | T[]): T[] => {
 const filterActive = (products: Product[]) => products.filter((item) => item.isActive !== false);
 
 const normalizeCategory = (value: unknown) => {
-  if (typeof value === "string") return value.trim().toLowerCase();
+  const normalize = (raw: string) => {
+    const value = raw
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    if (value === "piteiras") return "piteira";
+    if (value === "cuias") return "cuia";
+    if (value === "fumigeno" || value === "fumigenos") return "fumigenos";
+    if (value === "acessorio" || value === "acessorios") return "acessorios";
+    return value;
+  };
+
+  if (typeof value === "string") return normalize(value);
   if (value && typeof value === "object") {
     const record = value as Record<string, unknown>;
-    if (typeof record.slug === "string" && record.slug.trim()) return record.slug.trim().toLowerCase();
-    if (typeof record.name === "string" && record.name.trim()) return record.name.trim().toLowerCase();
+    if (typeof record.slug === "string" && record.slug.trim()) return normalize(record.slug);
+    if (typeof record.name === "string" && record.name.trim()) return normalize(record.name);
   }
   return "";
 };

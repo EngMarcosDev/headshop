@@ -3,8 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const ErpAccessPage = () => {
-  const erpLoginUrl =
-    import.meta.env.VITE_ERP_URL || "http://localhost:8081/login";
+  const erpLoginUrl = import.meta.env.VITE_ERP_URL || "https://erp.bacaxita.com.br/login";
 
   useEffect(() => {
     window.location.href = erpLoginUrl;

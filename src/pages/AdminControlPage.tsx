@@ -10,6 +10,9 @@ const AdminControlPage = () => {
     return <Navigate to="/" replace />;
   }
 
+  const erpLoginUrl = import.meta.env.VITE_ERP_URL || "https://erp.bacaxita.com.br/login";
+  const apiUrl = import.meta.env.VITE_API_URL || "https://bacaxita.com.br/api/headshop";
+
   return (
     <div className="min-h-screen flex flex-col paper-bg">
       <Header />
@@ -27,19 +30,19 @@ const AdminControlPage = () => {
 
           <div className="bg-card border border-border rounded-xl p-6 text-sm text-muted-foreground space-y-3">
             <p>Portal administrativo reservado para a equipe Bacaxita.</p>
-            <p>ERP Bacaxita conectado para uso local.</p>
+            <p>ERP Bacaxita conectado ao ambiente principal.</p>
             <div className="pt-2 flex flex-wrap gap-2">
               <button
-                onClick={() => window.open("file:///C:/ERP-CAXI-front/index.html", "_blank")}
+                onClick={() => window.open(erpLoginUrl, "_blank")}
                 className="px-3 py-2 rounded-md bg-rasta-green text-white text-xs font-semibold"
               >
                 Abrir ERP Bacaxita
               </button>
               <button
-                onClick={() => window.open("http://localhost:5050/products", "_blank")}
+                onClick={() => window.open(apiUrl, "_blank")}
                 className="px-3 py-2 rounded-md bg-muted text-foreground text-xs font-semibold"
               >
-                Ver API Local
+                Ver API
               </button>
             </div>
           </div>
