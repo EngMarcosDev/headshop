@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Leaf, Truck, Tag } from "lucide-react";
+import { Leaf, Tag, Truck } from "lucide-react";
 
 const banners = [
   {
@@ -12,14 +12,14 @@ const banners = [
   {
     id: 2,
     bg: "bg-rasta-yellow",
-    text: "Entregas rastreáveis.",
+    text: "Entregas rastreaveis.",
     textColor: "text-primary",
     icon: Truck,
   },
   {
     id: 3,
     bg: "bg-rasta-red",
-    text: "Consulte nossas promoções.",
+    text: "Consulte nossas promocoes.",
     textColor: "text-white",
     icon: Tag,
   },
@@ -37,16 +37,16 @@ const PromoBanner = () => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
     }
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setCurrent((prev) => prev + 1);
       setIsTransitioning(true);
     }, SLIDE_DURATION_MS);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [current]);
 
   return (
-    <section className="relative w-full overflow-hidden h-9">
+    <section className="relative h-10 w-full overflow-hidden sm:h-9">
       <div
         className={`flex h-full ${isTransitioning ? "transition-transform ease-in-out" : ""}`}
         style={{
@@ -65,12 +65,10 @@ const PromoBanner = () => {
         {extended.map((banner, i) => (
           <div
             key={`${banner.id}-${i}`}
-            className={`w-full flex-shrink-0 ${banner.bg} h-full flex items-center justify-center gap-2`}
+            className={`h-full w-full flex-shrink-0 ${banner.bg} flex items-center justify-center gap-1.5 px-2`}
           >
-            <banner.icon className={`w-4 h-4 ${banner.textColor} opacity-80`} />
-            <span
-              className={`text-xs font-bold tracking-wide ${banner.textColor}`}
-            >
+            <banner.icon className={`h-3.5 w-3.5 ${banner.textColor} opacity-80 sm:h-4 sm:w-4`} />
+            <span className={`text-[11px] font-bold tracking-wide ${banner.textColor} sm:text-xs`}>
               {banner.text}
             </span>
           </div>

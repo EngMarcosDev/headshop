@@ -59,6 +59,9 @@ const HistoryPage = () => {
     });
   }, [ordersQuery.data, query, status, fromDate, toDate]);
 
+  const visibleOrders = useMemo(() => filteredOrders.slice(0, 10), [filteredOrders]);
+  const hasScrollableList = visibleOrders.length > 5;
+
   if (!user) {
     return <Navigate to="/" replace />;
   }
@@ -81,10 +84,11 @@ const HistoryPage = () => {
           <div className="mb-4 rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-medium text-foreground">Area restrita de pagamento</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Para seguranca, sua carteira de pagamento fica disponivel dentro do historico.
+              Para seguranca, sua carteira de pagamento fica disponivel dentro do historico e exige senha para abrir.
             </p>
             <Link
               to="/carteira"
+              state={{ fromHistory: true }}
               className="mt-3 inline-flex rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-foreground hover:bg-muted/70"
             >
               Abrir Minha Carteira
@@ -97,7 +101,7 @@ const HistoryPage = () => {
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Buscar por pedido"
+                placeholder="Codigo do pedido"
                 className="h-10 rounded-md border border-border bg-background px-3 text-sm"
               />
               <select
@@ -133,49 +137,56 @@ const HistoryPage = () => {
               <p className="text-sm text-muted-foreground">Nenhum pedido encontrado com os filtros selecionados.</p>
             ) : null}
 
-            {filteredOrders.length > 0 ? (
+            {visibleOrders.length > 0 ? (
               <>
-                <p className="mb-3 text-xs text-muted-foreground">{filteredOrders.length} pedido(s) encontrado(s)</p>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Exibindo {visibleOrders.length} de {filteredOrders.length} pedido(s)
+                  {filteredOrders.length > 10 ? " (maximo 10 por vez)." : "."}
+                </p>
 
                 <div className="hidden overflow-x-auto md:block">
-                  <table className="w-full min-w-[720px] text-sm">
-                    <thead>
-                      <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                        <th className="py-2 pr-3">Pedido</th>
-                        <th className="py-2 pr-3">Data</th>
-                        <th className="py-2 pr-3">Status</th>
-                        <th className="py-2 pr-3">Itens</th>
-                        <th className="py-2">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredOrders.map((order) => (
-                        <tr key={order.id} className="border-b border-border/60 last:border-0">
-                          <td className="py-3 pr-3 font-medium text-foreground">
-                            {order.orderNumber || `#${order.id}`}
-                          </td>
-                          <td className="py-3 pr-3 text-muted-foreground">
-                            {new Date(order.createdAt).toLocaleString("pt-BR")}
-                          </td>
-                          <td className="py-3 pr-3">
-                            <span className="inline-flex rounded-full bg-muted px-2 py-1 text-xs font-medium text-foreground">
-                              {statusLabel[order.status] || order.status}
-                            </span>
-                          </td>
-                          <td className="py-3 pr-3 text-muted-foreground">
-                            {Array.isArray(order.items) ? order.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0) : 0}
-                          </td>
-                          <td className="py-3 font-semibold text-foreground">
-                            {formatPrice(Number(order.total || 0), { decimals: 2 })}
-                          </td>
+                  <div className={hasScrollableList ? "max-h-[320px] overflow-y-auto pr-1" : ""}>
+                    <table className="w-full min-w-[720px] text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                          <th className="py-2 pr-3">Pedido</th>
+                          <th className="py-2 pr-3">Data</th>
+                          <th className="py-2 pr-3">Status</th>
+                          <th className="py-2 pr-3">Itens</th>
+                          <th className="py-2">Total</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {visibleOrders.map((order) => (
+                          <tr key={order.id} className="border-b border-border/60 last:border-0">
+                            <td className="py-3 pr-3 font-medium text-foreground">
+                              {order.orderNumber || `#${order.id}`}
+                            </td>
+                            <td className="py-3 pr-3 text-muted-foreground">
+                              {new Date(order.createdAt).toLocaleString("pt-BR")}
+                            </td>
+                            <td className="py-3 pr-3">
+                              <span className="inline-flex rounded-full bg-muted px-2 py-1 text-xs font-medium text-foreground">
+                                {statusLabel[order.status] || order.status}
+                              </span>
+                            </td>
+                            <td className="py-3 pr-3 text-muted-foreground">
+                              {Array.isArray(order.items)
+                                ? order.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
+                                : 0}
+                            </td>
+                            <td className="py-3 font-semibold text-foreground">
+                              {formatPrice(Number(order.total || 0), { decimals: 2 })}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 md:hidden">
-                  {filteredOrders.map((order) => (
+                <div className={`grid grid-cols-1 gap-3 md:hidden ${hasScrollableList ? "max-h-[540px] overflow-y-auto pr-1" : ""}`}>
+                  {visibleOrders.map((order) => (
                     <div key={order.id} className="rounded-lg border border-border p-3">
                       <p className="font-medium text-foreground">{order.orderNumber || `Pedido #${order.id}`}</p>
                       <p className="mt-1 text-xs text-muted-foreground">

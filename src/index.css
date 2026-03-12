@@ -227,7 +227,6 @@
   .social-pill-whatsapp {
     background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
     box-shadow: 0 8px 20px -12px rgb(37 211 102 / 0.9);
-    animation: whatsapp-pulse 2.3s ease-in-out infinite;
   }
 
   .social-pill-instagram {
@@ -426,15 +425,5 @@
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgb(245 175 35 / 0);
-  }
-}
-
-@keyframes whatsapp-pulse {
-  0%,
-  100% {
-    box-shadow: 0 8px 20px -12px rgb(37 211 102 / 0.9);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgb(37 211 102 / 0.2), 0 10px 24px -10px rgb(37 211 102 / 0.95);
   }
 }

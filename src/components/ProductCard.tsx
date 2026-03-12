@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ShoppingBag, Plus, Minus } from "lucide-react";
+import { Minus, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "@/contexts/CartContext";
 
@@ -60,76 +60,65 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
   }, [justAdded]);
 
   return (
-    <div className="card-product p-3 md:p-4 flex flex-col h-full min-h-[270px] group">
-      {/* Badge */}
+    <div className="card-product group flex h-full min-h-[248px] flex-col p-2.5 sm:p-3 md:min-h-[270px] md:p-4">
       {isNew && (
-        <div className="mb-2">
-          <span className="badge-new">Lançamento</span>
+        <div className="mb-1.5 sm:mb-2">
+          <span className="badge-new">Lancamento</span>
         </div>
       )}
 
-      {/* Image */}
-      <div className="h-[120px] md:h-[140px] flex items-center justify-center mb-3 rounded-md bg-muted/50 overflow-hidden">
+      <div className="mb-2.5 flex h-[110px] items-center justify-center overflow-hidden rounded-md bg-muted/50 sm:h-[120px] md:mb-3 md:h-[140px]">
         <img
           src={image}
           alt={name}
           loading="lazy"
           decoding="async"
-          className="max-h-[110px] md:max-h-[130px] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+          className="max-h-[100px] w-auto object-contain transition-transform duration-300 group-hover:scale-105 sm:max-h-[110px] md:max-h-[130px]"
           onError={(event) => {
             event.currentTarget.src = "/placeholder.svg";
           }}
         />
       </div>
 
-      {/* Info */}
-      <div className="flex-1 flex flex-col justify-between space-y-2">
+      <div className="flex flex-1 flex-col justify-between space-y-2">
         <div>
-          <h3 className="font-semibold text-foreground text-xs md:text-sm leading-tight line-clamp-2">
+          <h3 className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground sm:text-xs md:text-sm">
             {name}
           </h3>
-          <p className="text-lg md:text-xl font-bold text-accent mt-2">
-            {formattedPrice}
-          </p>
+          <p className="mt-1.5 text-base font-bold text-accent sm:text-lg md:mt-2 md:text-xl">{formattedPrice}</p>
         </div>
         <div className="mt-auto">
           {quantity === 0 ? (
             <Button
               size="sm"
               onClick={handleAddToCart}
-              className="w-full bg-rasta-green hover:bg-rasta-green/90 text-white font-semibold uppercase tracking-wider text-[10px] md:text-xs h-8"
+              className="h-8 w-full bg-rasta-green text-[10px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-rasta-green/90 md:text-xs md:tracking-wider"
             >
-              <ShoppingBag className="w-3.5 h-3.5 mr-1" />
+              <ShoppingBag className="mr-1 h-3.5 w-3.5" />
               {justAdded ? "Adicionado" : "Adicionar"}
             </Button>
           ) : (
             <>
-              <div className="flex items-center justify-center gap-2 h-8 bg-muted rounded-md">
+              <div className="flex h-8 items-center justify-center gap-1.5 rounded-md bg-muted sm:gap-2">
                 <Button
                   size="icon"
                   variant="ghost"
                   onClick={handleDecrement}
-                  className="h-7 w-7 hover:bg-rasta-red/20 text-rasta-red"
+                  className="h-7 w-7 text-rasta-red hover:bg-rasta-red/20"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="h-3.5 w-3.5" />
                 </Button>
-                <span className="font-bold text-sm min-w-[24px] text-center text-foreground">
-                  {quantity}
-                </span>
+                <span className="min-w-[24px] text-center text-sm font-bold text-foreground">{quantity}</span>
                 <Button
                   size="icon"
                   variant="ghost"
                   onClick={handleIncrement}
-                  className="h-7 w-7 hover:bg-rasta-green/20 text-rasta-green"
+                  className="h-7 w-7 text-rasta-green hover:bg-rasta-green/20"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              {quantity > 0 && (
-                <p className="text-[11px] text-muted-foreground mt-2">
-                  Total: {formattedTotal}
-                </p>
-              )}
+              {quantity > 0 && <p className="mt-1.5 text-[10px] text-muted-foreground sm:mt-2 sm:text-[11px]">Total: {formattedTotal}</p>}
             </>
           )}
         </div>

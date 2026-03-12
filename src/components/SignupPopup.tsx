@@ -16,6 +16,9 @@ interface FormError {
   message: string;
 }
 
+const COOKIE_STORAGE_KEY = "bacaxita_cookie_preferences";
+const LOGIN_PROMPT_SEEN_KEY = "bacaxita_login_prompt_seen";
+
 const SignupPopup = () => {
   const { totalItems } = useCart();
   const { user, login, register, verifyEmail, resendVerification, googleLogin } = useAuth();
@@ -46,9 +49,12 @@ const SignupPopup = () => {
   const timerRef = useRef<number | null>(null);
   const prevTotalItemsRef = useRef<number>(totalItems);
   const isLogged = Boolean(user?.email && user?.token);
+  const hasCookieChoice = () => Boolean(window.localStorage.getItem(COOKIE_STORAGE_KEY));
+  const hasSeenLoginPrompt = () => Boolean(window.localStorage.getItem(LOGIN_PROMPT_SEEN_KEY));
 
   const openPopup = (force = false) => {
     if (isLogged) return;
+    if (!force && !hasCookieChoice()) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     if (force) {
       setMode("login");
@@ -60,6 +66,8 @@ const SignupPopup = () => {
   // Auto-open popup on signup
   useEffect(() => {
     if (isLogged) return;
+    if (!hasCookieChoice()) return;
+    if (hasSeenLoginPrompt()) return;
     timerRef.current = window.setTimeout(() => openPopup(false), 4000);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -73,6 +81,18 @@ const SignupPopup = () => {
     }
     prevTotalItemsRef.current = totalItems;
   }, [totalItems, isLogged]);
+
+  useEffect(() => {
+    const onCookieChoice = () => {
+      if (isLogged) return;
+      window.setTimeout(() => openPopup(false), 500);
+    };
+
+    window.addEventListener("bacaxita:cookie-choice", onCookieChoice as EventListener);
+    return () => {
+      window.removeEventListener("bacaxita:cookie-choice", onCookieChoice as EventListener);
+    };
+  }, [isLogged]);
 
   // Listen for popup trigger
   useEffect(() => {
@@ -90,6 +110,17 @@ const SignupPopup = () => {
   useEffect(() => {
     if (isLogged && isOpen) setIsOpen(false);
   }, [isLogged, isOpen]);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("bacaxita:login-popup-visibility", {
+        detail: { open: isOpen },
+      })
+    );
+    if (isOpen) {
+      window.localStorage.setItem(LOGIN_PROMPT_SEEN_KEY, "1");
+    }
+  }, [isOpen]);
 
   const normalizeEmail = (email: string) => {
     const trimmed = email.trim().toLowerCase();

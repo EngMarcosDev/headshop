@@ -10,6 +10,14 @@ const applyMode = (mode: CookieMode) => {
   document.cookie = `bacaxita_cookie_mode=${mode}; path=/; max-age=${maxAge}; SameSite=Lax`;
 };
 
+const dispatchCookieChoiceEvent = (mode: CookieMode) => {
+  window.dispatchEvent(
+    new CustomEvent("bacaxita:cookie-choice", {
+      detail: { mode },
+    })
+  );
+};
+
 export default function CookieConsent() {
   const [open, setOpen] = useState(false);
   const [hasSavedChoice, setHasSavedChoice] = useState(false);
@@ -34,6 +42,7 @@ export default function CookieConsent() {
     applyMode(mode);
     setHasSavedChoice(true);
     setOpen(false);
+    dispatchCookieChoiceEvent(mode);
   };
 
   const launcherVisible = useMemo(() => !launcherHidden, [launcherHidden]);

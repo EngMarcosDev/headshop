@@ -38,9 +38,9 @@ const ProductSection = ({
   const hasMore = products.length > initialVisibleCount;
 
   return (
-    <section className="py-6 md:py-10 lg:py-12 px-3 sm:px-4 md:px-6">
+    <section className="px-2.5 py-5 sm:px-4 md:px-6 md:py-10 lg:py-12">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
-        <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-display font-semibold text-accent text-center mb-4 sm:mb-6 md:mb-8 uppercase tracking-widest">
+        <h2 className="mb-4 text-sm font-display font-semibold uppercase tracking-[0.2em] text-accent sm:mb-6 sm:text-base md:mb-8 md:text-lg lg:text-xl lg:tracking-widest">
           {title}
         </h2>
 
@@ -50,12 +50,12 @@ const ProductSection = ({
           <div className="text-center text-sm text-muted-foreground">{emptyMessage}</div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 justify-items-center w-full max-w-6xl">
+            <div className="grid w-full max-w-6xl grid-cols-2 gap-2.5 justify-items-center sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
               {isLoading
                 ? Array.from({ length: initialVisibleCount }).map((_, index) => (
                     <div
                       key={`skeleton-${index}`}
-                      className="w-full max-w-[260px] card-product p-3 md:p-4 flex flex-col h-full"
+                      className="card-product flex h-full w-full max-w-[240px] flex-col p-2.5 sm:p-3 md:max-w-[260px] md:p-4"
                     >
                       <Skeleton className="h-4 w-20 mb-3" />
                       <Skeleton className="flex-1 min-h-[120px] mb-3" />
@@ -67,7 +67,7 @@ const ProductSection = ({
                 : visibleProducts.map((product, index) => (
                     <div
                       key={product.id}
-                      className="w-full max-w-[260px] animate-in fade-in slide-in-from-bottom-2 duration-500"
+                      className="w-full max-w-[240px] animate-in fade-in slide-in-from-bottom-2 duration-500 md:max-w-[260px]"
                       style={{ animationDelay: `${index * 40}ms` }}
                     >
                       <ProductCard

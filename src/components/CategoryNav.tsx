@@ -14,21 +14,23 @@ const CategoryNav = () => {
   return (
     <section className="py-4 sm:py-6 md:py-8 lg:py-10 px-3 sm:px-4">
       <div className="max-w-5xl mx-auto">
-        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
+        <div className="-mx-1 overflow-x-auto pb-2 md:mx-0 md:overflow-visible md:pb-0">
+          <div className="flex min-w-max items-start gap-2.5 px-1 sm:gap-3 md:min-w-0 md:flex-wrap md:justify-center md:gap-6 lg:gap-8">
           {categories.map((category) => (
             <Link
               key={category.name}
               to={category.href}
-              className="group flex flex-col items-center gap-1.5 sm:gap-2"
+                className="group flex w-[76px] shrink-0 flex-col items-center gap-1.5 sm:w-[84px] md:w-auto md:shrink md:gap-2"
             >
-              <div className="category-circle w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18">
-                <category.icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-primary group-hover:text-accent transition-colors" />
+              <div className="category-circle h-11 w-11 sm:h-[3.25rem] sm:w-[3.25rem] md:h-16 md:w-16 lg:h-18 lg:w-18">
+                  <category.icon className="h-[18px] w-[18px] text-primary transition-colors group-hover:text-accent sm:h-[22px] sm:w-[22px] md:h-7 md:w-7" />
               </div>
-              <span className="text-[10px] sm:text-xs md:text-sm font-medium text-foreground/80 group-hover:text-accent transition-colors text-center">
+                <span className="text-center text-[10px] font-medium text-foreground/80 transition-colors group-hover:text-accent sm:text-[11px] md:text-sm">
                 {category.name}
               </span>
             </Link>
           ))}
+        </div>
         </div>
       </div>
       <div className="max-w-4xl mx-auto mt-6 sm:mt-8">

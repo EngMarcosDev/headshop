@@ -35,18 +35,18 @@ const Header = () => {
     <>
       <header className="w-full">
         <nav className="bg-header">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <h1 className="text-xl sm:text-2xl font-display font-bold text-header-foreground tracking-widest">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
+            <h1 className="text-lg sm:text-2xl font-display font-bold text-header-foreground tracking-[0.2em] sm:tracking-widest">
               ABACAXITA
             </h1>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               {user?.email ? (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={logout}
-                  className="text-header-foreground/80 hover:text-header-foreground hover:bg-white/5 h-8 px-2 text-[11px] uppercase tracking-wider"
+                  className="h-8 px-1.5 text-[10px] uppercase tracking-[0.12em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground sm:px-2 sm:text-[11px] sm:tracking-wider"
                 >
                   Sair
                 </Button>
@@ -55,10 +55,10 @@ const Header = () => {
                   variant="ghost"
                   size="sm"
                   onClick={triggerLogin}
-                  className="text-header-foreground/80 hover:text-header-foreground hover:bg-white/5 h-8 px-2 text-[11px] uppercase tracking-wider flex items-center gap-1"
+                  className="flex h-8 items-center gap-1 px-1.5 text-[10px] uppercase tracking-[0.1em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground sm:px-2 sm:text-[11px] sm:tracking-wider"
                 >
                   <User className="w-3.5 h-3.5" />
-                  Login / Sign up
+                  <span className="hidden sm:inline">Login / Sign up</span>
                 </Button>
               )}
 
@@ -66,7 +66,7 @@ const Header = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(true)}
-                className="text-header-foreground/80 hover:text-header-foreground hover:bg-white/5 relative h-9 w-9"
+                className="relative h-9 w-9 text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground"
               >
                 <ShoppingBag className="w-5 h-5" />
                 {totalItems > 0 && (
@@ -84,7 +84,7 @@ const Header = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setMenuOpen(true)}
-                className="text-header-foreground/80 hover:text-header-foreground hover:bg-white/5 h-9 w-9"
+                className="h-9 w-9 text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground"
               >
                 <Menu className="w-5 h-5" />
               </Button>

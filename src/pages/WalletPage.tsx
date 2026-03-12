@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowLeft, CreditCard, Plus, ShieldCheck, Trash2, Wallet } from "lucide-react";
+import { AlertCircle, ArrowLeft, CreditCard, LockKeyhole, Plus, ShieldCheck, Trash2, Wallet } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,12 @@ interface SavedCard {
 interface WalletCardsResponse {
   customerId: string;
   cards: SavedCard[];
+}
+
+interface WalletAccessResponse {
+  walletAccessToken?: string;
+  expiresAt?: string;
+  error?: string;
 }
 
 const brandColors: Record<SavedCard["brand"], string> = {
@@ -75,13 +81,17 @@ const loadMercadoPagoSdk = async () => {
 const WalletPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const sessionStorageKey = `wallet_access_token:${user?.id || "guest"}`;
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cards, setCards] = useState<SavedCard[]>([]);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [publicKey, setPublicKey] = useState<string>("");
   const [search, setSearch] = useState("");
+  const [unlockPassword, setUnlockPassword] = useState("");
+  const [walletAccessToken, setWalletAccessToken] = useState("");
   const [registerOpen, setRegisterOpen] = useState(false);
   const [formData, setFormData] = useState({
     holderName: "",
@@ -92,20 +102,43 @@ const WalletPage = () => {
     cpf: "",
   });
 
-  const loadCards = async () => {
-    if (!user?.token) return;
+  const lockWallet = useCallback(
+    (message?: string) => {
+      setWalletAccessToken("");
+      setCards([]);
+      setRegisterOpen(false);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem(sessionStorageKey);
+      }
+      if (message) {
+        setError(message);
+      }
+    },
+    [sessionStorageKey]
+  );
+
+  const loadCards = useCallback(async () => {
+    if (!user?.token || !walletAccessToken) return;
     setIsLoading(true);
     setError(null);
     try {
       const response = await fetch(joinUrl(API_BASE, "/payments/mercadopago/wallet/cards"), {
         headers: {
           Authorization: `Bearer ${user.token}`,
+          "X-Wallet-Access-Token": walletAccessToken,
         },
         credentials: "include",
       });
-      const payload = (await response.json().catch(() => null)) as WalletCardsResponse | { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as
+        | WalletCardsResponse
+        | { error?: string; code?: string }
+        | null;
 
       if (!response.ok) {
+        if (response.status === 423 || (payload && "code" in payload && payload.code === "WALLET_LOCKED")) {
+          lockWallet(payload && "error" in payload ? payload.error : "Carteira bloqueada. Informe sua senha.");
+          return;
+        }
         throw new Error(payload && "error" in payload && payload.error ? payload.error : "Erro ao carregar carteira.");
       }
 
@@ -116,11 +149,19 @@ const WalletPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [lockWallet, user?.token, walletAccessToken]);
+
+  useEffect(() => {
+    if (!user?.id || typeof window === "undefined") return;
+    const storedToken = window.sessionStorage.getItem(sessionStorageKey);
+    if (storedToken) {
+      setWalletAccessToken(storedToken);
+    }
+  }, [sessionStorageKey, user?.id]);
 
   useEffect(() => {
     loadCards();
-  }, [user?.token]);
+  }, [loadCards]);
 
   useEffect(() => {
     const loadPublicKey = async () => {
@@ -153,7 +194,7 @@ const WalletPage = () => {
   }, [cards, search]);
 
   const handleDelete = async (cardId: string) => {
-    if (!user?.token) return;
+    if (!user?.token || !walletAccessToken) return;
     setDeleting(cardId);
     setError(null);
     try {
@@ -161,12 +202,17 @@ const WalletPage = () => {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${user.token}`,
+          "X-Wallet-Access-Token": walletAccessToken,
         },
         credentials: "include",
       });
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as { error?: string; code?: string } | null;
 
       if (!response.ok) {
+        if (response.status === 423 || payload?.code === "WALLET_LOCKED") {
+          lockWallet(payload?.error || "Carteira bloqueada. Informe sua senha.");
+          return;
+        }
         throw new Error(payload?.error || "Nao foi possivel remover o cartao.");
       }
 
@@ -179,9 +225,45 @@ const WalletPage = () => {
     }
   };
 
-  const handleRegisterCard = async (event: React.FormEvent) => {
+  const handleUnlockWallet = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!user?.token) return;
+
+    setIsUnlocking(true);
+    setError(null);
+    try {
+      const response = await fetch(joinUrl(API_BASE, "/payments/mercadopago/wallet/access/verify"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({ password: unlockPassword }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as WalletAccessResponse | null;
+      if (!response.ok || !payload?.walletAccessToken) {
+        throw new Error(payload?.error || "Senha invalida para acessar a carteira.");
+      }
+
+      setWalletAccessToken(payload.walletAccessToken);
+      setUnlockPassword("");
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(sessionStorageKey, payload.walletAccessToken);
+      }
+    } catch (unlockError) {
+      const message =
+        unlockError instanceof Error ? unlockError.message : "Nao foi possivel desbloquear a carteira.";
+      setError(message);
+    } finally {
+      setIsUnlocking(false);
+    }
+  };
+
+  const handleRegisterCard = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!user?.token || !walletAccessToken) return;
     setError(null);
     setIsSaving(true);
 
@@ -217,13 +299,20 @@ const WalletPage = () => {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.token}`,
+          "X-Wallet-Access-Token": walletAccessToken,
         },
         credentials: "include",
         body: JSON.stringify({ token }),
       });
 
-      const payload = (await response.json().catch(() => null)) as { card?: SavedCard; error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as
+        | { card?: SavedCard; error?: string; code?: string }
+        | null;
       if (!response.ok || !payload?.card) {
+        if (response.status === 423 || payload?.code === "WALLET_LOCKED") {
+          lockWallet(payload?.error || "Carteira bloqueada. Informe sua senha.");
+          return;
+        }
         throw new Error(payload?.error || "Nao foi possivel cadastrar o cartao.");
       }
 
@@ -284,92 +373,136 @@ const WalletPage = () => {
           </div>
         ) : null}
 
-        <div className="mb-4 rounded-xl border border-border bg-card p-4">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <Input
-              placeholder="Buscar por bandeira, titular ou final"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="md:col-span-2"
-            />
-            <Button onClick={() => setRegisterOpen(true)} className="bg-rasta-green hover:bg-rasta-green/90 text-white">
-              <Plus className="mr-2 h-4 w-4" />
-              Cadastrar cartao
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-4 rounded-xl border border-border bg-card p-4 md:p-6">
-          {isLoading ? <p className="text-sm text-muted-foreground">Carregando carteira...</p> : null}
-
-          {!isLoading && filteredCards.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-              <CreditCard className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
-              <p className="font-medium text-foreground">Nenhum cartao salvo ainda</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Cadastre um cartao para acelerar seus proximos pagamentos.
-              </p>
-            </div>
-          ) : null}
-
-          {filteredCards.length > 0 ? (
-            <>
-              <p className="text-xs text-muted-foreground">{filteredCards.length} cartao(oes) encontrado(s)</p>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[680px] text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      <th className="py-2 pr-3">Bandeira</th>
-                      <th className="py-2 pr-3">Cartao</th>
-                      <th className="py-2 pr-3">Titular</th>
-                      <th className="py-2 pr-3">Validade</th>
-                      <th className="py-2 pr-3">Padrao</th>
-                      <th className="py-2 text-right">Acao</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredCards.map((card) => (
-                      <tr key={card.id} className="border-b border-border/60 last:border-0">
-                        <td className="py-3 pr-3">
-                          <span
-                            className={`inline-flex h-7 min-w-[62px] items-center justify-center rounded-md px-2 text-[10px] font-bold tracking-wider text-white ${brandColors[card.brand]}`}
-                          >
-                            {brandLabels[card.brand]}
-                          </span>
-                        </td>
-                        <td className="py-3 pr-3 font-mono text-foreground">**** **** **** {card.lastFour}</td>
-                        <td className="py-3 pr-3 text-foreground">{card.holderName}</td>
-                        <td className="py-3 pr-3 text-muted-foreground">
-                          {String(card.expiryMonth).padStart(2, "0")}/{card.expiryYear}
-                        </td>
-                        <td className="py-3 pr-3">
-                          {card.isDefault ? (
-                            <span className="inline-flex rounded-full bg-accent/15 px-2 py-1 text-[10px] font-semibold text-accent">
-                              PADRAO
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </td>
-                        <td className="py-3 text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(card.id)}
-                            disabled={deleting === card.id}
-                            className="text-destructive/70 hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className={`h-4 w-4 ${deleting === card.id ? "animate-spin" : ""}`} />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {!walletAccessToken ? (
+          <div className="rounded-xl border border-border bg-card p-6 md:p-8">
+            <div className="mx-auto max-w-md space-y-4">
+              <div className="flex items-start gap-3">
+                <LockKeyhole className="mt-0.5 h-5 w-5 text-accent" />
+                <div>
+                  <p className="font-medium text-foreground">Carteira protegida</p>
+                  <p className="text-sm text-muted-foreground">
+                    Digite sua senha de login para visualizar e gerenciar os cartoes salvos.
+                  </p>
+                </div>
               </div>
-            </>
-          ) : null}
-        </div>
+
+              <form onSubmit={handleUnlockWallet} className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="wallet-password">Senha da conta</Label>
+                  <Input
+                    id="wallet-password"
+                    type="password"
+                    value={unlockPassword}
+                    onChange={(event) => setUnlockPassword(event.target.value)}
+                    placeholder="Digite sua senha"
+                    autoComplete="current-password"
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-rasta-green text-white hover:bg-rasta-green/90"
+                  disabled={isUnlocking}
+                >
+                  {isUnlocking ? "Validando..." : "Desbloquear Minha Carteira"}
+                </Button>
+              </form>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="mb-4 rounded-xl border border-border bg-card p-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <Input
+                  placeholder="Buscar por bandeira, titular ou final"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  className="md:col-span-2"
+                />
+                <Button
+                  onClick={() => setRegisterOpen(true)}
+                  className="bg-rasta-green text-white hover:bg-rasta-green/90"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Cadastrar cartao
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-xl border border-border bg-card p-4 md:p-6">
+              {isLoading ? <p className="text-sm text-muted-foreground">Carregando carteira...</p> : null}
+
+              {!isLoading && filteredCards.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+                  <CreditCard className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
+                  <p className="font-medium text-foreground">Nenhum cartao salvo ainda</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Cadastre um cartao para acelerar seus proximos pagamentos.
+                  </p>
+                </div>
+              ) : null}
+
+              {filteredCards.length > 0 ? (
+                <>
+                  <p className="text-xs text-muted-foreground">{filteredCards.length} cartao(oes) encontrado(s)</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[680px] text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                          <th className="py-2 pr-3">Bandeira</th>
+                          <th className="py-2 pr-3">Cartao</th>
+                          <th className="py-2 pr-3">Titular</th>
+                          <th className="py-2 pr-3">Validade</th>
+                          <th className="py-2 pr-3">Padrao</th>
+                          <th className="py-2 text-right">Acao</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCards.map((card) => (
+                          <tr key={card.id} className="border-b border-border/60 last:border-0">
+                            <td className="py-3 pr-3">
+                              <span
+                                className={`inline-flex h-7 min-w-[62px] items-center justify-center rounded-md px-2 text-[10px] font-bold tracking-wider text-white ${brandColors[card.brand]}`}
+                              >
+                                {brandLabels[card.brand]}
+                              </span>
+                            </td>
+                            <td className="py-3 pr-3 font-mono text-foreground">**** **** **** {card.lastFour}</td>
+                            <td className="py-3 pr-3 text-foreground">{card.holderName}</td>
+                            <td className="py-3 pr-3 text-muted-foreground">
+                              {String(card.expiryMonth).padStart(2, "0")}/{card.expiryYear}
+                            </td>
+                            <td className="py-3 pr-3">
+                              {card.isDefault ? (
+                                <span className="inline-flex rounded-full bg-accent/15 px-2 py-1 text-[10px] font-semibold text-accent">
+                                  PADRAO
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(card.id)}
+                                disabled={deleting === card.id}
+                                className="text-destructive/70 hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className={`h-4 w-4 ${deleting === card.id ? "animate-spin" : ""}`} />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </>
+        )}
       </main>
 
       <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
