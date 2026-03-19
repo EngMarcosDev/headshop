@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Minus, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProductCardProps {
   id: number;
@@ -29,6 +31,8 @@ const ProductCard = ({
   isNew = false,
 }: ProductCardProps) => {
   const { addItem, items, updateQuantity } = useCart();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [justAdded, setJustAdded] = useState(false);
 
   const cartItem = items.find((item) => item.id === id);
@@ -79,6 +83,10 @@ const ProductCard = ({
     }
   };
 
+  const openDetails = () => {
+    navigate(`/produto/${id}`);
+  };
+
   useEffect(() => {
     if (!justAdded) return;
     const timer = window.setTimeout(() => setJustAdded(false), 1200);
@@ -93,7 +101,12 @@ const ProductCard = ({
         </div>
       )}
 
-      <div className="mb-2.5 flex h-[110px] items-center justify-center overflow-hidden rounded-md bg-muted/50 sm:h-[120px] md:mb-3 md:h-[140px]">
+      <div
+        className={`mb-2.5 flex h-[110px] items-center justify-center overflow-hidden rounded-md bg-muted/50 sm:h-[120px] md:mb-3 md:h-[140px] ${
+          isMobile ? "cursor-pointer" : ""
+        }`}
+        onClick={isMobile ? openDetails : undefined}
+      >
         <div className="relative h-full w-full">
           <img
             src={primaryImage}
@@ -124,7 +137,12 @@ const ProductCard = ({
 
       <div className="flex flex-1 flex-col justify-between space-y-2">
         <div>
-          <h3 className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground sm:text-xs md:text-sm">
+          <h3
+            className={`line-clamp-2 text-[11px] font-semibold leading-tight text-foreground sm:text-xs md:text-sm ${
+              isMobile ? "cursor-pointer" : ""
+            }`}
+            onClick={isMobile ? openDetails : undefined}
+          >
             {name}
           </h3>
           {hasDiscount ? (

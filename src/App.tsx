@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import SignupPopup from "@/components/SignupPopup";
@@ -12,6 +12,7 @@ import CookieConsent from "@/components/CookieConsent";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import Index from "./pages/Index";
 import CategoryPage from "./pages/CategoryPage";
+import ProductPage from "./pages/ProductPage";
 import NotFound from "./pages/NotFound";
 import HistoryPage from "./pages/HistoryPage";
 import ErpAccessPage from "./pages/ErpAccessPage";
@@ -33,6 +34,13 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const ContactRedirect = () => {
+  useEffect(() => {
+    window.open("https://wa.me/5581981705445", "_blank", "noopener,noreferrer");
+  }, []);
+  return <Navigate to="/" replace />;
+};
 
 const AppShell = () => {
   const [showSocialFloat, setShowSocialFloat] = useState(false);
@@ -57,7 +65,20 @@ const AppShell = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/produtos" element={<Navigate to="/" replace />} />
+          <Route
+            path="/sobre"
+            element={
+              <Navigate
+                to="/"
+                replace
+                state={{ openAbout: true }}
+              />
+            }
+          />
+          <Route path="/contato" element={<ContactRedirect />} />
           <Route path="/categoria/:slug" element={<CategoryPage />} />
+          <Route path="/produto/:id" element={<ProductPage />} />
           <Route path="/historico" element={<HistoryPage />} />
           <Route path="/erp" element={<ErpAccessPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />

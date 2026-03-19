@@ -82,6 +82,7 @@ const normalizeProduct = (value: any): Product => {
   return {
     id: Number(value?.id || 0),
     name: String(value?.name || "Produto"),
+    description: typeof value?.description === "string" ? value.description : undefined,
     price: Number(value?.price || 0),
     originalPrice: value?.originalPrice != null ? Number(value.originalPrice) : null,
     discountPercent: value?.discountPercent != null ? Number(value.discountPercent) : null,
@@ -187,5 +188,27 @@ export async function fetchProductsByCategory(slug: string): Promise<Product[]> 
     return filterActive(normalizeList(response));
   } catch {
     return [];
+  }
+}
+
+export async function fetchProductById(id: number): Promise<Product | null> {
+  if (!Number.isFinite(id) || id <= 0) return null;
+
+  try {
+    const response = await apiGet<Product | { product?: Product }>(`/products/${id}`);
+    const payload = (response as any)?.product || response;
+    const normalized = normalizeProduct(payload);
+    return normalized.id > 0 ? normalized : null;
+  } catch {
+    // ignore and try ERP fallback
+  }
+
+  try {
+    const response = await apiGetWithBase<Product | { product?: Product }>(ERP_API_BASE, `/products/${id}`);
+    const payload = (response as any)?.product || response;
+    const normalized = normalizeProduct(payload);
+    return normalized.id > 0 ? normalized : null;
+  } catch {
+    return null;
   }
 }
