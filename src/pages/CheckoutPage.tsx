@@ -36,6 +36,11 @@ type PixPayload = {
   expiresAt?: string | null;
 };
 
+type CheckoutSnapshot = {
+  items: ReturnType<typeof normalizeCartItem>[];
+  total: number;
+};
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -52,11 +57,18 @@ const CheckoutPage = () => {
     checked: false,
     available: true,
   });
+  const [orderSnapshot, setOrderSnapshot] = useState<CheckoutSnapshot | null>(null);
 
   const normalizedItems = useMemo(() => {
     if (!Array.isArray(items)) return [];
     return items.map(normalizeCartItem).filter((item) => item.id > 0 && item.quantity > 0);
   }, [items]);
+
+  const checkoutItems = normalizedItems.length > 0 ? normalizedItems : orderSnapshot?.items ?? [];
+  const checkoutTotal =
+    normalizedItems.length > 0
+      ? totalPrice
+      : orderSnapshot?.total ?? checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   useEffect(() => {
     const loadPixDiagnostic = async () => {
@@ -94,8 +106,10 @@ const CheckoutPage = () => {
 
   const handleStartPayment = async () => {
     setError(null);
+    const activeItems = normalizedItems.length > 0 ? normalizedItems : orderSnapshot?.items ?? [];
+    const activeTotal = activeItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    if (normalizedItems.length === 0) {
+    if (activeItems.length === 0) {
       setError("Sua sacola esta vazia.");
       return;
     }
@@ -111,6 +125,7 @@ const CheckoutPage = () => {
       return;
     }
 
+    setOrderSnapshot({ items: activeItems, total: activeTotal });
     setIsProcessing(true);
 
     try {
@@ -127,7 +142,7 @@ const CheckoutPage = () => {
             name: user.name || user.email.split("@")[0],
             email: user.email,
           },
-          items: normalizedItems.map((item) => ({
+          items: activeItems.map((item) => ({
             productId: item.id,
             quantity: item.quantity,
             unitPrice: item.price,
@@ -185,7 +200,7 @@ const CheckoutPage = () => {
         body: JSON.stringify({
           orderId,
           payerEmail: user.email,
-          items: normalizedItems.map((item) => ({
+          items: activeItems.map((item) => ({
             title: item.name,
             quantity: item.quantity,
             unitPrice: item.price,
@@ -244,7 +259,7 @@ const CheckoutPage = () => {
           <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">Finalizar Pagamento</h1>
         </div>
 
-        {normalizedItems.length === 0 && !pixPayment ? (
+        {checkoutItems.length === 0 && !pixPayment ? (
           <div className="rounded-xl border border-border bg-card p-8 text-center">
             <p className="mb-4 text-muted-foreground">Sua sacola esta vazia.</p>
             <Button onClick={() => navigate("/")}>Voltar as compras</Button>
@@ -280,8 +295,8 @@ const CheckoutPage = () => {
                     />
                     <p className="text-sm text-muted-foreground">
                       Valor:{" "}
-                      <span className="font-semibold text-foreground">
-                        {formatPrice(pixPayment.amount || totalPrice, { decimals: 2 })}
+                        <span className="font-semibold text-foreground">
+                        {formatPrice(pixPayment.amount || checkoutTotal, { decimals: 2 })}
                       </span>
                     </p>
                     {pixPayment.expiresAt ? (
@@ -316,7 +331,7 @@ const CheckoutPage = () => {
 
               <Button
                 onClick={handleStartPayment}
-                disabled={isProcessing || pixDisabled || normalizedItems.length === 0}
+                disabled={isProcessing || pixDisabled || checkoutItems.length === 0}
                 className="h-12 w-full bg-rasta-green text-white hover:bg-rasta-green/90"
               >
                 {isProcessing
@@ -330,7 +345,7 @@ const CheckoutPage = () => {
             </section>
 
             <div className="lg:col-span-2">
-              <CheckoutSummary items={normalizedItems} total={totalPrice} />
+              <CheckoutSummary items={checkoutItems} total={checkoutTotal} />
             </div>
           </div>
         )}

@@ -211,7 +211,11 @@ const CategoryPage = () => {
                       id={product.id}
                       name={product.name}
                       price={product.price}
+                      originalPrice={product.originalPrice}
+                      discountLabel={product.discountLabel}
+                      discountActive={product.discountActive}
                       image={product.image}
+                      gallery={product.gallery}
                       category={product.category || slug}
                       isNew={product.isNew}
                     />

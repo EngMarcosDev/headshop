@@ -7,22 +7,48 @@ interface ProductCardProps {
   id: number;
   name: string;
   price: number;
+  originalPrice?: number | null;
+  discountLabel?: string | null;
+  discountActive?: boolean;
   image: string;
+  gallery?: string[];
   category?: string;
   isNew?: boolean;
 }
 
-const ProductCard = ({ id, name, price, image, category, isNew = false }: ProductCardProps) => {
+const ProductCard = ({
+  id,
+  name,
+  price,
+  originalPrice,
+  discountLabel,
+  discountActive,
+  image,
+  gallery,
+  category,
+  isNew = false,
+}: ProductCardProps) => {
   const { addItem, items, updateQuantity } = useCart();
   const [justAdded, setJustAdded] = useState(false);
 
   const cartItem = items.find((item) => item.id === id);
   const quantity = cartItem?.quantity || 0;
+  const primaryImage = gallery?.[0] || image;
+  const secondaryImage = gallery?.[1] || null;
+  const hasDiscount =
+    discountActive === true &&
+    typeof originalPrice === "number" &&
+    Number.isFinite(originalPrice) &&
+    originalPrice > price;
 
   const formattedPrice = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(price);
+  const formattedOriginalPrice = new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(Number(originalPrice || 0));
   const formattedTotal = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -37,13 +63,13 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
   };
 
   const handleAddToCart = () => {
-    addItem({ id, name, price, image, category });
+    addItem({ id, name, price, image: primaryImage, category });
     setJustAdded(true);
     emitCartAdded();
   };
 
   const handleIncrement = () => {
-    addItem({ id, name, price, image, category });
+    addItem({ id, name, price, image: primaryImage, category });
     emitCartAdded();
   };
 
@@ -68,16 +94,32 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
       )}
 
       <div className="mb-2.5 flex h-[110px] items-center justify-center overflow-hidden rounded-md bg-muted/50 sm:h-[120px] md:mb-3 md:h-[140px]">
-        <img
-          src={image}
-          alt={name}
-          loading="lazy"
-          decoding="async"
-          className="max-h-[100px] w-auto object-contain transition-transform duration-300 group-hover:scale-105 sm:max-h-[110px] md:max-h-[130px]"
-          onError={(event) => {
-            event.currentTarget.src = "/placeholder.svg";
-          }}
-        />
+        <div className="relative h-full w-full">
+          <img
+            src={primaryImage}
+            alt={name}
+            loading="lazy"
+            decoding="async"
+            className={`absolute inset-0 h-full w-full object-contain transition-all duration-300 sm:max-h-[110px] md:max-h-[130px] ${
+              secondaryImage ? "group-hover:opacity-0" : "group-hover:scale-105"
+            }`}
+            onError={(event) => {
+              event.currentTarget.src = "/placeholder.svg";
+            }}
+          />
+          {secondaryImage ? (
+            <img
+              src={secondaryImage}
+              alt={`${name} imagem 2`}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105 sm:max-h-[110px] md:max-h-[130px]"
+              onError={(event) => {
+                event.currentTarget.src = primaryImage || "/placeholder.svg";
+              }}
+            />
+          ) : null}
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col justify-between space-y-2">
@@ -85,6 +127,14 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
           <h3 className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground sm:text-xs md:text-sm">
             {name}
           </h3>
+          {hasDiscount ? (
+            <div className="mt-1.5 flex items-center gap-2 md:mt-2">
+              <span className="text-[11px] text-muted-foreground line-through sm:text-xs">{formattedOriginalPrice}</span>
+              <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                {discountLabel || "Oferta"}
+              </span>
+            </div>
+          ) : null}
           <p className="mt-1.5 text-base font-bold text-accent sm:text-lg md:mt-2 md:text-xl">{formattedPrice}</p>
         </div>
         <div className="mt-auto">

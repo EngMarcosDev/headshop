@@ -2,6 +2,11 @@ export interface Product {
   id: number;
   name: string;
   price: number;
+  originalPrice?: number | null;
+  discountPercent?: number | null;
+  discountAmount?: number | null;
+  discountLabel?: string | null;
+  discountActive?: boolean;
   image: string;
   bannerImage?: string;
   gallery?: string[];
