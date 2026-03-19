@@ -2,10 +2,6 @@
 import { Link } from "react-router-dom";
 
 const Footer = () => {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
     <footer className="mt-auto">
       <div className="rasta-stripe" />
@@ -23,12 +19,12 @@ const Footer = () => {
             <div className="text-center">
               <h4 className="font-semibold mb-4 text-rasta-yellow text-sm uppercase tracking-wider">Links Rapidos</h4>
               <nav className="flex flex-col gap-2">
-                <button
-                  onClick={scrollToTop}
+                <Link
+                  to="/"
                   className="text-sm opacity-75 hover:opacity-100 hover:text-rasta-yellow transition-all"
                 >
                   Inicio
-                </button>
+                </Link>
                 <Link
                   to="/produtos"
                   className="text-sm opacity-75 hover:opacity-100 hover:text-rasta-yellow transition-all"
@@ -71,7 +67,7 @@ const Footer = () => {
 
               <div className="mt-5 flex flex-wrap items-center justify-center gap-3 md:justify-end">
                 <a
-                  href="https://instagram.com/bacaxita"
+                  href="https://www.instagram.com/abacaxitashop?igsh=N2NncGpidDg4NmJq&utm_source=qr"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="social-pill-instagram"

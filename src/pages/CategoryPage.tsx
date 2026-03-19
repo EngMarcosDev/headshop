@@ -9,6 +9,7 @@ import { fetchProductsByCategory } from "@/api/products";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { HEADSHOP_CATEGORIES, getCategoryBySlug, normalizeCategorySlug } from "@/lib/categoryCatalog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const normalizeText = (value: unknown) =>
   String(value || "")
@@ -42,6 +43,11 @@ const CategoryPage = () => {
     optionMap.set("all", "Todos");
 
     products.forEach((product) => {
+      const subcategory = String(product.subcategory || "").trim();
+      if (subcategory) {
+        optionMap.set(`subcategory:${normalizeText(subcategory)}`, `Subcategoria: ${subcategory}`);
+      }
+
       const brand = String(product.brand || "").trim();
       if (brand) {
         optionMap.set(`brand:${normalizeText(brand)}`, `Marca: ${brand}`);
@@ -70,6 +76,9 @@ const CategoryPage = () => {
     } else if (subcategoryFilter.startsWith("material:")) {
       const expected = subcategoryFilter.replace("material:", "");
       list = list.filter((product) => normalizeText(product.material) === expected);
+    } else if (subcategoryFilter.startsWith("subcategory:")) {
+      const expected = subcategoryFilter.replace("subcategory:", "");
+      list = list.filter((product) => normalizeText(product.subcategory) === expected);
     }
 
     if (priceSort === "asc") {
@@ -155,19 +164,23 @@ const CategoryPage = () => {
                 </p>
                 <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-2 py-1">
                   <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Preco</span>
-                  <select
+                  <Select
                     value={priceSort}
-                    onChange={(event) => setPriceSort(event.target.value as "none" | "asc" | "desc")}
-                    className="bg-transparent text-xs text-foreground outline-none md:text-sm"
+                    onValueChange={(value) => setPriceSort(value as "none" | "asc" | "desc")}
                   >
-                    <option value="none">Sem ordem</option>
-                    <option value="asc">Menor preco</option>
-                    <option value="desc">Maior preco</option>
-                  </select>
+                    <SelectTrigger className="h-7 min-w-[138px] border-none bg-transparent px-2 text-xs text-foreground shadow-none focus:ring-0 md:text-sm">
+                      <SelectValue placeholder="Sem ordem" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card text-foreground">
+                      <SelectItem value="none">Sem ordem</SelectItem>
+                      <SelectItem value="asc">Menor preco</SelectItem>
+                      <SelectItem value="desc">Maior preco</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2 max-sm:max-h-36 max-sm:overflow-y-auto">
                 {subcategoryOptions.map((option) => (
                   <Button
                     key={option.key}

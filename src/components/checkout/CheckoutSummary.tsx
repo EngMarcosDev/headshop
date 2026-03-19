@@ -48,7 +48,7 @@ const CheckoutSummary = ({ items, total }: CheckoutSummaryProps) => {
         </div>
         <div className="flex items-center justify-between border-t border-border pt-3">
           <span className="font-bold text-foreground">Total</span>
-          <span className="text-xl font-bold text-accent">{formatPrice(total, { decimals: 2 })}</span>
+          <span className="text-xl font-bold text-accent dark:text-white">{formatPrice(total, { decimals: 2 })}</span>
         </div>
       </div>
     </aside>

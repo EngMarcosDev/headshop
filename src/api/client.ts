@@ -1,3 +1,5 @@
+import { notifyAbacaxiError } from "@/lib/abacaxiTI";
+
 const isPrivateHost = (host: string) =>
   host === "localhost" ||
   host === "127.0.0.1" ||
@@ -98,11 +100,21 @@ export async function apiGetWithBase<T>(
       headers: { "Content-Type": "application/json" },
       signal: controller.signal,
     });
+  } catch (error) {
+    notifyAbacaxiError({
+      title: "AbacaxiTI detectou uma falha de conexao",
+      message: "Nao conseguimos falar com o servidor agora. Confira sua internet e tente novamente.",
+    });
+    throw error;
   } finally {
     window.clearTimeout(timeout);
   }
 
   if (!response.ok) {
+    notifyAbacaxiError({
+      title: "AbacaxiTI analisou a resposta da API",
+      message: "Tivemos um retorno inesperado do servidor. Ja estamos tratando isso.",
+    });
     throw new Error(`API error ${response.status}`);
   }
 

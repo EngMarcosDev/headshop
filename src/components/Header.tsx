@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import MobileMenu from "./MobileMenu";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import pineappleIcon from "@/assets/pineapple-icon.png";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,8 +37,9 @@ const Header = () => {
       <header className="w-full">
         <nav className="bg-header">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
-            <h1 className="text-lg sm:text-2xl font-display font-bold text-header-foreground tracking-[0.2em] sm:tracking-widest">
-              ABACAXITA
+            <h1 className="flex items-center gap-2 text-lg font-display font-bold text-header-foreground tracking-[0.2em] sm:text-2xl sm:tracking-widest">
+              <img src={pineappleIcon} alt="Abacaxi Bacaxita" className="h-7 w-7 rounded-full object-cover sm:h-8 sm:w-8" />
+              <span>ABACAXITA</span>
             </h1>
 
             <div className="flex items-center gap-0.5 sm:gap-1">

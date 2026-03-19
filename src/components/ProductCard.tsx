@@ -107,10 +107,8 @@ const ProductCard = ({
       )}
 
       <div
-        className={`mb-2.5 flex h-[110px] items-center justify-center overflow-hidden rounded-md bg-muted/50 sm:h-[120px] md:mb-3 md:h-[140px] ${
-          isMobile ? "cursor-pointer" : ""
-        }`}
-        onClick={isMobile ? openDetails : undefined}
+        className="mb-2.5 flex h-[118px] cursor-pointer items-center justify-center overflow-hidden rounded-md bg-muted/30 sm:h-[132px] md:mb-3 md:h-[150px]"
+        onClick={openDetails}
       >
         <div className="relative h-full w-full">
           <img
@@ -118,7 +116,7 @@ const ProductCard = ({
             alt={name}
             loading="lazy"
             decoding="async"
-            className={`absolute inset-0 h-full w-full object-contain transition-all duration-300 sm:max-h-[110px] md:max-h-[130px] ${
+            className={`absolute inset-0 h-full w-full object-cover transition-all duration-300 ${
               secondaryImage ? "group-hover:opacity-0" : "group-hover:scale-105"
             }`}
             onError={(event) => {
@@ -131,7 +129,7 @@ const ProductCard = ({
               alt={`${name} imagem 2`}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105 sm:max-h-[110px] md:max-h-[130px]"
+              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105"
               onError={(event) => {
                 event.currentTarget.src = primaryImage || "/placeholder.svg";
               }}
@@ -143,10 +141,8 @@ const ProductCard = ({
       <div className="flex flex-1 flex-col justify-between space-y-2">
         <div>
           <h3
-            className={`line-clamp-2 text-[11px] font-semibold leading-tight text-foreground sm:text-xs md:text-sm ${
-              isMobile ? "cursor-pointer" : ""
-            }`}
-            onClick={isMobile ? openDetails : undefined}
+            className="line-clamp-2 cursor-pointer text-[11px] font-semibold leading-tight text-foreground sm:text-xs md:text-sm"
+            onClick={openDetails}
           >
             {name}
           </h3>
@@ -158,7 +154,7 @@ const ProductCard = ({
               </span>
             </div>
           ) : null}
-          <p className="mt-1.5 text-base font-bold text-accent sm:text-lg md:mt-2 md:text-xl">{formattedPrice}</p>
+          <p className="mt-1.5 text-base font-bold text-accent dark:text-white sm:text-lg md:mt-2 md:text-xl">{formattedPrice}</p>
         </div>
         <div className="mt-auto">
           {quantity === 0 ? (

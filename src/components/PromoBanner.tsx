@@ -13,7 +13,7 @@ const banners = [
     id: 2,
     bg: "bg-rasta-yellow",
     text: "Entregas rastreaveis.",
-    textColor: "text-primary",
+    textColor: "text-black",
     icon: Truck,
   },
   {

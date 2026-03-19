@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import OrderSuccessPopup from "@/components/OrderSuccessPopup";
 import { useCart } from "@/contexts/CartContext";
 
 const PaymentSuccessPage = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const { clearCart } = useCart();
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -24,7 +26,15 @@ const PaymentSuccessPage = () => {
       <Header />
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="text-center text-muted-foreground">
-          Finalizando pagamento...
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="mb-5 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </button>
+          <p>Finalizando pagamento...</p>
         </div>
       </main>
       <Footer />

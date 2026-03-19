@@ -22,7 +22,7 @@ const SOCIALS: SocialTarget[] = [
   {
     id: "instagram",
     label: "Abrir Instagram",
-    href: "https://instagram.com/bacaxita",
+    href: "https://www.instagram.com/abacaxitashop?igsh=N2NncGpidDg4NmJq&utm_source=qr",
     gradient: "linear-gradient(135deg, #405de6 0%, #c13584 45%, #fd1d1d 70%, #ffdc80 100%)",
     icon: <Instagram className="h-7 w-7 text-white" />,
   },
@@ -35,9 +35,9 @@ const SOCIALS: SocialTarget[] = [
   },
 ];
 
-const BLINK_PHASE_MS = 2800;
-const FADE_SWITCH_MS = 700;
-const HOLD_PHASE_MS = 1800;
+const DISPLAY_PHASE_MS = 4200;
+const FADE_SWITCH_MS = 900;
+const HOLD_PHASE_MS = 1700;
 
 interface WhatsAppFloatProps {
   visible?: boolean;
@@ -45,7 +45,6 @@ interface WhatsAppFloatProps {
 
 const WhatsAppFloat = ({ visible = true }: WhatsAppFloatProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [blinkSeed, setBlinkSeed] = useState(0);
   const [isSwitching, setIsSwitching] = useState(false);
   const [firstLoopDone, setFirstLoopDone] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -56,9 +55,7 @@ const WhatsAppFloat = ({ visible = true }: WhatsAppFloatProps) => {
 
     const timers: number[] = [];
     const runLoop = () => {
-      setBlinkSeed((value) => value + 1);
-
-      const blinkTimer = window.setTimeout(() => {
+      const displayTimer = window.setTimeout(() => {
         setIsSwitching(true);
 
         const switchTimer = window.setTimeout(() => {
@@ -78,8 +75,8 @@ const WhatsAppFloat = ({ visible = true }: WhatsAppFloatProps) => {
           timers.push(holdTimer);
         }, FADE_SWITCH_MS);
         timers.push(switchTimer);
-      }, BLINK_PHASE_MS);
-      timers.push(blinkTimer);
+      }, DISPLAY_PHASE_MS);
+      timers.push(displayTimer);
     };
 
     runLoop();
@@ -99,7 +96,7 @@ const WhatsAppFloat = ({ visible = true }: WhatsAppFloatProps) => {
       } transition-all duration-700`}
     >
       <a
-        key={`${activeSocial.id}-${blinkSeed}`}
+        key={activeSocial.id}
         href={activeSocial.href}
         target={activeSocial.id === "tour" ? undefined : "_blank"}
         rel={activeSocial.id === "tour" ? undefined : "noopener noreferrer"}
@@ -110,8 +107,8 @@ const WhatsAppFloat = ({ visible = true }: WhatsAppFloatProps) => {
             event.preventDefault();
           }
         }}
-        className={`social-float-blink flex h-[52px] w-[52px] items-center justify-center rounded-full shadow-lg transition-all duration-700 hover:scale-110 hover:shadow-xl sm:h-14 sm:w-14 ${
-          isSwitching ? "scale-95 opacity-45" : "scale-100 opacity-100"
+        className={`social-float-breathe flex h-[52px] w-[52px] items-center justify-center rounded-full shadow-lg transition-all duration-900 hover:scale-110 hover:shadow-xl sm:h-14 sm:w-14 ${
+          isSwitching ? "scale-[0.96] opacity-50" : "scale-100 opacity-100"
         }`}
         style={{ background: activeSocial.gradient }}
       >

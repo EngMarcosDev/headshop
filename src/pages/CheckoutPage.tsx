@@ -10,6 +10,8 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE, joinUrl } from "@/api/client";
 import { formatPrice } from "@/lib/priceFormatter";
+import { notifyAbacaxiError } from "@/lib/abacaxiTI";
+import pineappleIcon from "@/assets/pineapple-icon.png";
 
 const methodDescriptions: Record<CheckoutMethod, string> = {
   credit: "Voce sera redirecionado para o checkout do Mercado Pago e podera pagar no cartao de credito.",
@@ -136,17 +138,22 @@ const CheckoutPage = () => {
 
     if (activeItems.length === 0) {
       setError("Sua sacola esta vazia.");
+      notifyAbacaxiError({ message: "Sua sacola esta vazia. Adicione itens para continuar." });
       return;
     }
 
     if (!user?.email) {
       setError("Faca login para continuar.");
+      notifyAbacaxiError({ message: "Para finalizar, voce precisa entrar com sua conta." });
       window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { mode: "login" } }));
       return;
     }
 
     if (selectedMethod === "pix" && pixDiagnostic.checked && !pixDiagnostic.available) {
       setError(pixDiagnostic.message || "PIX indisponivel no momento.");
+      notifyAbacaxiError({
+        message: pixDiagnostic.message || "O PIX esta temporariamente indisponivel. Tente novamente em instantes.",
+      });
       return;
     }
 
@@ -251,6 +258,7 @@ const CheckoutPage = () => {
       const message =
         checkoutError instanceof Error ? checkoutError.message : "Nao foi possivel iniciar o pagamento.";
       setError(message);
+      notifyAbacaxiError({ message });
     } finally {
       setIsProcessing(false);
     }
@@ -262,6 +270,7 @@ const CheckoutPage = () => {
       await navigator.clipboard.writeText(pixPayment.qrCode);
     } catch {
       setError("Nao foi possivel copiar o codigo PIX.");
+      notifyAbacaxiError({ message: "Nao conseguimos copiar o codigo PIX agora. Tente novamente." });
     }
   };
 
@@ -298,6 +307,22 @@ const CheckoutPage = () => {
               <div className="rounded-xl border border-border bg-card p-5">
                 <p className="text-sm text-muted-foreground">{methodDescriptions[selectedMethod]}</p>
               </div>
+
+              {selectedMethod === "pix" ? (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                  <div className="flex items-start gap-3">
+                    <img src={pineappleIcon} alt="Abacaxi Bacaxita" className="h-8 w-8 rounded-full object-cover" />
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800">
+                        Faltam so alguns passos para finalizar seu pedido.
+                      </p>
+                      <p className="mt-1 text-xs text-amber-700">
+                        Gere o QR Code, conclua o pagamento no app do banco e aguarde a confirmacao automatica.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
               {selectedMethod === "pix" && pixDiagnostic.checked && !pixDiagnostic.available ? (
                 <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700">

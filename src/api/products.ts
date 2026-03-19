@@ -10,6 +10,7 @@ const unwrapList = <T,>(payload: ApiListResponse<T> | T[]): T[] => {
 };
 
 const filterActive = (products: Product[]) => products.filter((item) => item.isActive !== false);
+const filterCatalogProducts = (products: Product[]) => products.filter((item) => item.category !== "banners");
 
 const normalizeCategory = (value: unknown) => {
   const normalize = (raw: string) => {
@@ -91,12 +92,14 @@ const normalizeProduct = (value: any): Product => {
     discountActive: value?.discountActive === true,
     image: normalizedGallery[0] || image || banner || "/placeholder.svg",
     bannerImage: banner || undefined,
+    showBannerPrice: value?.showBannerPrice === true,
     gallery: normalizedGallery,
     isNew: Boolean(value?.isNew),
     isActive: value?.isActive ?? value?.active ?? true,
     isFeatured: Boolean(value?.isFeatured),
     isPopular: Boolean(value?.isPopular),
     category: normalizeCategory(value?.category),
+    subcategory: typeof value?.subcategory === "string" ? value.subcategory : undefined,
     material: typeof value?.material === "string" ? value.material : undefined,
     brand: typeof value?.brand === "string" ? value.brand : undefined,
   };
@@ -138,14 +141,14 @@ export async function fetchFeaturedProducts(): Promise<Product[]> {
 
   try {
     const response = await apiGet<ApiListResponse<Product> | Product[]>("/products/featured");
-    return filterActive(normalizeList(response));
+    return filterCatalogProducts(filterActive(normalizeList(response)));
   } catch {
     // ignore and try ERP fallback
   }
 
   try {
     const response = await apiGetWithBase<ApiListResponse<Product> | Product[]>(ERP_API_BASE, "/products/featured");
-    return filterActive(normalizeList(response));
+    return filterCatalogProducts(filterActive(normalizeList(response)));
   } catch {
     return [];
   }
@@ -156,19 +159,19 @@ export async function fetchAllProducts(): Promise<Product[]> {
     const [featured, popular] = await Promise.all([mockApi.featuredProducts(), mockApi.popularProducts()]);
     const map = new Map<number, Product>();
     [...featured, ...popular].forEach((item) => map.set(item.id, item));
-    return Array.from(map.values());
+    return filterCatalogProducts(Array.from(map.values()));
   }
 
   try {
     const response = await apiGet<ApiListResponse<Product> | Product[]>("/products");
-    return filterActive(normalizeList(response));
+    return filterCatalogProducts(filterActive(normalizeList(response)));
   } catch {
     // ignore and try ERP fallback
   }
 
   try {
     const response = await apiGetWithBase<ApiListResponse<Product> | Product[]>(ERP_API_BASE, "/products");
-    return filterActive(normalizeList(response));
+    return filterCatalogProducts(filterActive(normalizeList(response)));
   } catch {
     return [];
   }
@@ -179,14 +182,14 @@ export async function fetchPopularProducts(): Promise<Product[]> {
 
   try {
     const response = await apiGet<ApiListResponse<Product> | Product[]>("/products/popular");
-    return filterActive(normalizeList(response));
+    return filterCatalogProducts(filterActive(normalizeList(response)));
   } catch {
     // ignore and try ERP fallback
   }
 
   try {
     const response = await apiGetWithBase<ApiListResponse<Product> | Product[]>(ERP_API_BASE, "/products/popular");
-    return filterActive(normalizeList(response));
+    return filterCatalogProducts(filterActive(normalizeList(response)));
   } catch {
     return [];
   }

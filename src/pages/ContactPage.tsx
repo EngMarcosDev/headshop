@@ -1,11 +1,13 @@
 import { FormEvent, useState } from "react";
-import { Mail, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Mail, MessageCircle, Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const WHATSAPP_NUMBER = "5581981705445";
 
 const ContactPage = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -13,7 +15,7 @@ const ContactPage = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const baseMessage = [
-      "Oi, equipe Bacaxita! Vim pelo site e gostaria de atendimento.",
+      "Oi, equipe Abacaxita! Vim pelo site e gostaria de atendimento.",
       name ? `Nome: ${name}` : "",
       email ? `Email: ${email}` : "",
       message ? `Mensagem: ${message}` : "",
@@ -30,9 +32,20 @@ const ContactPage = () => {
       <Header />
 
       <main className="mx-auto grid w-full max-w-6xl flex-1 gap-6 px-4 py-8 md:grid-cols-2 md:py-12">
+        <div className="md:col-span-2">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </button>
+        </div>
+
         <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Contato</p>
-          <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Fale com a Bacaxita</h1>
+          <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Fale com a Abacaxita</h1>
           <p className="mt-3 text-sm text-muted-foreground">
             Atendimento rapido por WhatsApp para pedidos, duvidas, suporte e novidades.
           </p>

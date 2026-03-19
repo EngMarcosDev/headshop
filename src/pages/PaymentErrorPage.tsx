@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const PaymentErrorPage = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const [orderId, setOrderId] = useState<string | null>(null);
 
@@ -14,21 +16,22 @@ const PaymentErrorPage = () => {
   }, [location.search]);
 
   return (
-    <div className="min-h-screen flex flex-col paper-bg">
+    <div className="paper-bg flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-display font-bold text-foreground mb-2">
-            Pagamento não concluído
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Não foi possível finalizar o pagamento. Tente novamente.
-          </p>
-          {orderId && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Pedido #{orderId}
-            </p>
-          )}
+      <main className="flex flex-1 items-center justify-center px-4 py-8">
+        <div className="max-w-md text-center">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="mb-5 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </button>
+
+          <h1 className="mb-2 text-2xl font-display font-bold text-foreground">Pagamento nao concluido</h1>
+          <p className="text-sm text-muted-foreground">Nao foi possivel finalizar o pagamento. Tente novamente.</p>
+          {orderId ? <p className="mt-2 text-xs text-muted-foreground">Pedido #{orderId}</p> : null}
         </div>
       </main>
       <Footer />

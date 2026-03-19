@@ -121,7 +121,7 @@ const CartSidebar = () => {
 
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-medium text-foreground">{item.name}</h3>
-                    <p className="mt-1 text-sm font-bold text-accent">{formatPrice(item.price, { decimals: 2 })}</p>
+                    <p className="mt-1 text-sm font-bold text-accent dark:text-white">{formatPrice(item.price, { decimals: 2 })}</p>
 
                     <div className="mt-2 flex items-center gap-2">
                       <button
@@ -158,7 +158,7 @@ const CartSidebar = () => {
           <div className="space-y-3 border-t border-border bg-muted/20 p-4">
             <div className="flex items-center justify-between">
               <span className="font-medium text-foreground">Total:</span>
-              <span className="text-lg font-bold text-accent">{formatPrice(totalPrice, { decimals: 2 })}</span>
+              <span className="text-lg font-bold text-accent dark:text-white">{formatPrice(totalPrice, { decimals: 2 })}</span>
             </div>
 
             <Button

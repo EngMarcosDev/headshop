@@ -22,7 +22,7 @@ export const HEADSHOP_CATEGORIES: HeadshopCategory[] = [
   { slug: "piteira", name: "Piteiras", href: "/categoria/piteira", icon: Filter },
   { slug: "fumigenos", name: "Fumigenos", href: "/categoria/fumigenos", icon: Flame },
   { slug: "cuia", name: "Cuias", href: "/categoria/cuia", icon: Coffee },
-  { slug: "bacakits", name: "BacaKits", href: "/categoria/bacakits", icon: Package },
+  { slug: "bacakits", name: "AbacaKits", href: "/categoria/bacakits", icon: Package },
   { slug: "acessorios", name: "Acessorios", href: "/categoria/acessorios", icon: Sparkles },
   { slug: "banners", name: "Banners", href: "/categoria/banners", icon: Sparkles },
 ];

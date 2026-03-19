@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { fetchProductById } from "@/api/products";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
+import { getCategoryBySlug } from "@/lib/categoryCatalog";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
@@ -40,6 +41,14 @@ const ProductPage = () => {
     product?.discountActive === true &&
     typeof product.originalPrice === "number" &&
     product.originalPrice > product.price;
+  const categoryLabel = product?.category ? getCategoryBySlug(product.category)?.name || product.category : "";
+  const productDetails = [
+    { label: "Categoria", value: categoryLabel },
+    { label: "Subcategoria", value: product?.subcategory },
+    { label: "Marca", value: product?.brand },
+    { label: "Material", value: product?.material },
+    { label: "Fotos", value: gallery.length > 0 ? `${gallery.length} imagem(ns)` : "" },
+  ].filter((item) => Boolean(item.value));
 
   if (!Number.isFinite(productId) || productId <= 0) {
     return (
@@ -47,9 +56,9 @@ const ProductPage = () => {
         <Header />
         <main className="mx-auto flex w-full max-w-5xl flex-1 items-center justify-center px-4 py-10">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground">Produto inválido</h1>
+            <h1 className="text-2xl font-bold text-foreground">Produto invalido</h1>
             <Link to="/" className="mt-3 inline-block text-sm text-accent hover:underline">
-              Voltar ao início
+              Voltar ao inicio
             </Link>
           </div>
         </main>
@@ -75,7 +84,7 @@ const ProductPage = () => {
         {productQuery.isLoading ? (
           <p className="text-sm text-muted-foreground">Carregando produto...</p>
         ) : !product ? (
-          <p className="text-sm text-muted-foreground">Produto não encontrado.</p>
+          <p className="text-sm text-muted-foreground">Produto nao encontrado.</p>
         ) : (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <section className="space-y-3">
@@ -106,19 +115,32 @@ const ProductPage = () => {
                   ))}
                 </div>
               ) : null}
+
+              <p className="text-xs text-muted-foreground">Toque em qualquer miniatura para trocar a imagem principal.</p>
             </section>
 
             <section className="space-y-4">
               <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">{product.name}</h1>
               {product.description ? <p className="text-sm text-muted-foreground">{product.description}</p> : null}
 
+              {productDetails.length > 0 ? (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {productDetails.map((detail) => (
+                    <div key={detail.label} className="rounded-lg border border-border bg-muted/20 px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{detail.label}</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{detail.value}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
               {hasDiscount ? (
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground line-through">{formatCurrency(Number(product.originalPrice || 0))}</p>
-                  <p className="text-3xl font-bold text-accent">{formatCurrency(product.price)}</p>
+                  <p className="text-3xl font-bold text-accent dark:text-white">{formatCurrency(product.price)}</p>
                 </div>
               ) : (
-                <p className="text-3xl font-bold text-accent">{formatCurrency(product.price)}</p>
+                <p className="text-3xl font-bold text-accent dark:text-white">{formatCurrency(product.price)}</p>
               )}
 
               {quantity === 0 ? (
@@ -135,7 +157,7 @@ const ProductPage = () => {
                   className="h-11 w-full bg-rasta-green text-white hover:bg-rasta-green/90"
                 >
                   <ShoppingBag className="mr-2 h-4 w-4" />
-                  Adicionar à sacola
+                  Adicionar a sacola
                 </Button>
               ) : (
                 <div className="space-y-2">
@@ -182,3 +204,4 @@ const ProductPage = () => {
 };
 
 export default ProductPage;
+

@@ -8,6 +8,11 @@ interface NewsBannerProps {
 }
 
 const AUTO_PLAY_MS = 5000;
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
 
 const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBannerProps) => {
   const slides = useMemo(
@@ -18,6 +23,8 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
           id: product.id,
           name: product.name,
           image: product.bannerImage || product.image,
+          price: Number(product.price || 0),
+          showPrice: product.showBannerPrice === true,
         }))
         .slice(0, 8),
     [products]
@@ -62,7 +69,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
           {slides.map((slide) => (
-            <div key={slide.id} className="w-full flex-shrink-0">
+            <div key={slide.id} className="relative w-full flex-shrink-0">
               <img
                 src={slide.image}
                 alt={slide.name}
@@ -70,6 +77,11 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
                 loading="lazy"
                 decoding="async"
               />
+              {slide.showPrice && slide.price > 0 ? (
+                <div className="absolute bottom-3 left-3 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white md:bottom-4 md:left-4 md:text-sm">
+                  {formatCurrency(slide.price)}
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

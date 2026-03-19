@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
@@ -15,6 +17,7 @@ const normalizeText = (value: unknown) =>
     .replace(/[\u0300-\u036f]/g, "");
 
 const ProductsPage = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
@@ -34,7 +37,9 @@ const ProductsPage = () => {
       if (!inCategory) return false;
 
       if (!searchText) return true;
-      const haystack = normalizeText(`${product.name} ${product.brand || ""} ${product.material || ""}`);
+      const haystack = normalizeText(
+        `${product.name} ${product.brand || ""} ${product.subcategory || ""} ${product.material || ""}`
+      );
       return haystack.includes(searchText);
     });
   }, [products, search, categoryFilter]);
@@ -44,6 +49,15 @@ const ProductsPage = () => {
       <Header />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:py-10">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </button>
+
         <div className="mb-6 space-y-3">
           <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">Todos os produtos</h1>
           <p className="text-sm text-muted-foreground">
@@ -57,7 +71,7 @@ const ProductsPage = () => {
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por nome, marca ou material..."
+              placeholder="Buscar por nome, marca, subcategoria ou material..."
               className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none ring-0 transition focus:border-accent"
             />
             <select

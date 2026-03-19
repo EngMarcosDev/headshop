@@ -10,6 +10,7 @@ import SignupPopup from "@/components/SignupPopup";
 import CartSidebar from "@/components/CartSidebar";
 import CookieConsent from "@/components/CookieConsent";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import AbacaxiTI from "@/components/AbacaxiTI";
 import Index from "./pages/Index";
 import CategoryPage from "./pages/CategoryPage";
 import ProductPage from "./pages/ProductPage";
@@ -57,6 +58,7 @@ const AppShell = () => {
       <SignupPopup />
       <CartSidebar />
       <WhatsAppFloat visible={showSocialFloat} />
+      <AbacaxiTI />
 
       <BrowserRouter>
         <Routes>
