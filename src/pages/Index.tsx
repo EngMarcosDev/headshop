@@ -6,13 +6,23 @@ import PromoBanner from "@/components/PromoBanner";
 import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
-import { fetchFeaturedProducts, fetchPopularProducts } from "@/api/products";
+import { fetchNewsBanners, fetchPopularProducts } from "@/api/products";
+import { useEffect } from "react";
 
 const Index = () => {
   const location = useLocation();
-  const featuredQuery = useQuery({
-    queryKey: ["products", "featured"],
-    queryFn: fetchFeaturedProducts,
+
+  useEffect(() => {
+    const shouldOpenAbout = Boolean((location.state as any)?.openAbout);
+    if (!shouldOpenAbout) return;
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("bacaxita:open-about"));
+    }, 80);
+  }, [location.key, location.state]);
+
+  const bannersQuery = useQuery({
+    queryKey: ["products", "news-banners"],
+    queryFn: fetchNewsBanners,
     staleTime: 2000,
     retry: 1,
     refetchOnWindowFocus: true,
@@ -38,9 +48,9 @@ const Index = () => {
         <PromoBanner />
         <CategoryNav />
         <NewsBanner
-          products={featuredQuery.data ?? []}
-          isLoading={featuredQuery.isLoading}
-          isError={featuredQuery.isError}
+          products={bannersQuery.data ?? []}
+          isLoading={bannersQuery.isLoading}
+          isError={bannersQuery.isError}
         />
         <ProductSection
           key={`popular-${location.key}`}

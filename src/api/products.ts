@@ -74,13 +74,18 @@ const normalizeMediaUrl = (value: unknown): string => {
 const normalizeProduct = (value: any): Product => {
   const image = normalizeMediaUrl(value?.image || value?.imageUrl || value?.image_link);
   const banner = normalizeMediaUrl(value?.bannerImage || value?.banner);
+  const gallery = Array.isArray(value?.gallery)
+    ? value.gallery.map((entry: unknown) => normalizeMediaUrl(entry)).filter(Boolean)
+    : [];
+  const normalizedGallery = [image, banner, ...gallery].filter(Boolean);
 
   return {
     id: Number(value?.id || 0),
     name: String(value?.name || "Produto"),
     price: Number(value?.price || 0),
-    image: image || banner || "/placeholder.svg",
+    image: normalizedGallery[0] || "/placeholder.svg",
     bannerImage: banner || undefined,
+    gallery: normalizedGallery,
     isNew: Boolean(value?.isNew),
     isActive: value?.isActive ?? value?.active ?? true,
     isFeatured: Boolean(value?.isFeatured),
@@ -93,6 +98,34 @@ const normalizeProduct = (value: any): Product => {
 
 const normalizeList = (payload: ApiListResponse<Product> | Product[] | any): Product[] =>
   unwrapList(payload).map(normalizeProduct).filter((product) => product.id > 0);
+
+const sortBanners = (products: Product[]) =>
+  [...products].sort((a, b) => {
+    const aPos = Number((a as any)?.bannerOrder ?? 0);
+    const bPos = Number((b as any)?.bannerOrder ?? 0);
+    return aPos - bPos;
+  });
+
+export async function fetchNewsBanners(): Promise<Product[]> {
+  if (USE_MOCKS) {
+    return mockApi.featuredProducts();
+  }
+
+  try {
+    const response = await apiGet<ApiListResponse<Product> | Product[]>("/banners");
+    return sortBanners(filterActive(normalizeList(response)));
+  } catch {
+    // ignore and try featured fallback
+  }
+
+  try {
+    const response = await apiGet<ApiListResponse<Product> | Product[]>("/products/featured");
+    const products = filterActive(normalizeList(response)).filter((item) => item.category === "banners");
+    return sortBanners(products);
+  } catch {
+    return [];
+  }
+}
 
 export async function fetchFeaturedProducts(): Promise<Product[]> {
   if (USE_MOCKS) return mockApi.featuredProducts();

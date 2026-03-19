@@ -28,6 +28,7 @@ const categoryNames: Record<string, string> = {
   cuia: "Cuias",
   acessorios: "Acessorios",
   fumigenos: "Fumígenos",
+  banners: "Banners",
 };
 
 const categoryIcons: Record<string, any> = {
@@ -37,6 +38,7 @@ const categoryIcons: Record<string, any> = {
   cuia: Coffee,
   acessorios: Sparkles,
   fumigenos: Sparkles,
+  banners: Sparkles,
 };
 
 const CategoryPage = () => {

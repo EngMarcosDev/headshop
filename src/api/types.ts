@@ -4,6 +4,7 @@ export interface Product {
   price: number;
   image: string;
   bannerImage?: string;
+  gallery?: string[];
   isNew?: boolean;
   isActive?: boolean;
   isFeatured?: boolean;
