@@ -1,24 +1,17 @@
-import { Cigarette, Coffee, Filter, Flame, Package, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const categories = [
-  { name: "Sedas", icon: Cigarette, href: "/categoria/sedas" },
-  { name: "Piteiras", icon: Filter, href: "/categoria/piteira" },
-  { name: "Fumigenos", icon: Flame, href: "/categoria/fumigenos" },
-  { name: "Cuias", icon: Coffee, href: "/categoria/cuia" },
-  { name: "BacaKits", icon: Package, href: "/categoria/bacakits" },
-  { name: "Acessorios", icon: Sparkles, href: "/categoria/acessorios" },
-];
+import { HEADSHOP_CATEGORIES } from "@/lib/categoryCatalog";
 
 const CategoryNav = () => {
+  const visibleCategories = HEADSHOP_CATEGORIES.filter((category) => category.slug !== "banners");
+
   return (
     <section className="py-4 sm:py-6 md:py-8 lg:py-10 px-3 sm:px-4">
       <div className="max-w-5xl mx-auto">
         <div className="-mx-1 overflow-x-auto pb-2 md:mx-0 md:overflow-visible md:pb-0">
           <div className="flex min-w-max items-start gap-2.5 px-1 sm:gap-3 md:min-w-0 md:flex-wrap md:justify-center md:gap-6 lg:gap-8">
-          {categories.map((category) => (
+          {visibleCategories.map((category) => (
             <Link
-              key={category.name}
+              key={category.slug}
               to={category.href}
                 className="group flex w-[76px] shrink-0 flex-col items-center gap-1.5 sm:w-[84px] md:w-auto md:shrink md:gap-2"
             >

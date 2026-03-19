@@ -1,11 +1,7 @@
-﻿import { useState } from "react";
-import { Instagram, Mail, MessageCircle, Phone } from "lucide-react";
+﻿import { Instagram, Mail, MessageCircle, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Footer = () => {
-  const [aboutOpen, setAboutOpen] = useState(false);
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -18,44 +14,44 @@ const Footer = () => {
         <div className="relative z-10 max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-footer-foreground">
             <div className="text-center md:text-left">
-              <h3 className="text-xl md:text-2xl font-display font-bold tracking-widest mb-3">
-                ABACAXITA
-              </h3>
+              <h3 className="text-xl md:text-2xl font-display font-bold tracking-widest mb-3">ABACAXITA</h3>
               <p className="text-sm opacity-75 leading-relaxed max-w-xs mx-auto md:mx-0">
-                Sua loja de acessórios com os melhores produtos e preços do mercado.
+                Sua loja de acessorios com os melhores produtos e precos do mercado.
               </p>
             </div>
 
             <div className="text-center">
-              <h4 className="font-semibold mb-4 text-rasta-yellow text-sm uppercase tracking-wider">
-                Links Rápidos
-              </h4>
+              <h4 className="font-semibold mb-4 text-rasta-yellow text-sm uppercase tracking-wider">Links Rapidos</h4>
               <nav className="flex flex-col gap-2">
                 <button
                   onClick={scrollToTop}
                   className="text-sm opacity-75 hover:opacity-100 hover:text-rasta-yellow transition-all"
                 >
-                  Produtos
+                  Inicio
                 </button>
                 <Link
-                  to="/categoria/bacakits"
+                  to="/produtos"
                   className="text-sm opacity-75 hover:opacity-100 hover:text-rasta-yellow transition-all"
                 >
-                  Promoções
+                  Produtos
                 </Link>
-                <button
-                  onClick={() => setAboutOpen(true)}
+                <Link
+                  to="/sobre"
                   className="text-sm opacity-75 hover:opacity-100 hover:text-rasta-yellow transition-all"
                 >
-                  Sobre Nós
-                </button>
+                  Sobre nos
+                </Link>
+                <Link
+                  to="/contato"
+                  className="text-sm opacity-75 hover:opacity-100 hover:text-rasta-yellow transition-all"
+                >
+                  Contato
+                </Link>
               </nav>
             </div>
 
             <div className="text-center md:text-right">
-              <h4 className="font-semibold mb-4 text-rasta-yellow text-sm uppercase tracking-wider">
-                Contato
-              </h4>
+              <h4 className="font-semibold mb-4 text-rasta-yellow text-sm uppercase tracking-wider">Contato</h4>
               <div className="flex flex-col gap-2 text-sm opacity-75">
                 <a
                   href="mailto:adm.bacaxita@gmail.com"
@@ -101,21 +97,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-
-      <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
-        <DialogContent className="max-w-md bg-card border-border">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-display text-accent text-center">
-              Sobre a Abacaxita
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4 text-center">
-            <p className="text-muted-foreground leading-relaxed">
-              Olá, texo teste de apresentação, caso eu tenha esquecido de mudar, me lembre. vlw
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
     </footer>
   );
 };

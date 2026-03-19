@@ -9,20 +9,22 @@ interface MobileMenuProps {
   onClose: () => void;
 }
 
-const menuLinks = [
-  { name: "Inicio", href: "/" },
-  { name: "Produtos", href: "/produtos" },
-  { name: "Sobre", href: "/sobre" },
-  { name: "Contato", href: "/contato" },
+type MenuAction = { name: string; type: "route"; href: string };
+
+const menuLinks: MenuAction[] = [
+  { name: "Inicio", type: "route", href: "/" },
+  { name: "Produtos", type: "route", href: "/produtos" },
+  { name: "Sobre", type: "route", href: "/sobre" },
+  { name: "Contato", type: "route", href: "/contato" },
 ];
 
 const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const { user } = useAuth();
   const [theme, setTheme] = useState<ThemeMode>("light");
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
-  const links = [
+  const links: MenuAction[] = [
     ...menuLinks,
-    ...(user ? [{ name: "Historico de Compras", href: "/historico" }] : []),
+    ...(user ? [{ name: "Historico de Compras", type: "route" as const, href: "/historico" }] : []),
   ];
   const erpLoginUrl = import.meta.env.VITE_ERP_URL || "https://erp.bacaxita.com.br/login";
 
@@ -133,7 +135,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
               to={link.href}
               onClick={onClose}
               ref={index === 0 ? firstLinkRef : undefined}
-              className="rounded-lg px-4 py-3 text-base font-medium text-header-foreground/90 transition-all hover:bg-white/10 hover:text-white"
+              className="w-full rounded-lg px-4 py-3 text-left text-base font-medium text-header-foreground/90 transition-all hover:bg-white/10 hover:text-white"
             >
               {link.name}
             </Link>

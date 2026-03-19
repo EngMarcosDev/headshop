@@ -49,6 +49,7 @@ const CheckoutPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pixPayment, setPixPayment] = useState<PixPayload | null>(null);
+  const [pixNow, setPixNow] = useState(() => Date.now());
   const [pixDiagnostic, setPixDiagnostic] = useState<{
     checked: boolean;
     available: boolean;
@@ -69,6 +70,30 @@ const CheckoutPage = () => {
     normalizedItems.length > 0
       ? totalPrice
       : orderSnapshot?.total ?? checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const pixExpiresAtMs = useMemo(() => {
+    if (!pixPayment?.expiresAt) return null;
+    const value = new Date(pixPayment.expiresAt).getTime();
+    return Number.isFinite(value) ? value : null;
+  }, [pixPayment?.expiresAt]);
+
+  const pixRemainingMs = pixExpiresAtMs != null ? Math.max(pixExpiresAtMs - pixNow, 0) : null;
+  const pixExpired = pixRemainingMs != null && pixRemainingMs <= 0;
+
+  const formattedPixCountdown = useMemo(() => {
+    if (pixRemainingMs == null) return "";
+    const totalSeconds = Math.max(Math.floor(pixRemainingMs / 1000), 0);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }, [pixRemainingMs]);
+
+  useEffect(() => {
+    if (!pixPayment?.expiresAt) return;
+    setPixNow(Date.now());
+    const timer = window.setInterval(() => setPixNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [pixPayment?.expiresAt]);
 
   useEffect(() => {
     const loadPixDiagnostic = async () => {
@@ -127,6 +152,7 @@ const CheckoutPage = () => {
 
     setOrderSnapshot({ items: activeItems, total: activeTotal });
     setIsProcessing(true);
+    setPixNow(Date.now());
 
     try {
       const authHeader = user.token ? { Authorization: `Bearer ${user.token}` } : {};
@@ -231,7 +257,7 @@ const CheckoutPage = () => {
   };
 
   const copyPixCode = async () => {
-    if (!pixPayment?.qrCode) return;
+    if (!pixPayment?.qrCode || pixExpired) return;
     try {
       await navigator.clipboard.writeText(pixPayment.qrCode);
     } catch {
@@ -300,9 +326,14 @@ const CheckoutPage = () => {
                       </span>
                     </p>
                     {pixPayment.expiresAt ? (
-                      <p className="text-xs text-muted-foreground">
-                        Expira em: {new Date(pixPayment.expiresAt).toLocaleString("pt-BR")}
-                      </p>
+                      <>
+                        <p className="text-xs text-muted-foreground">
+                          Expira em: {new Date(pixPayment.expiresAt).toLocaleString("pt-BR")}
+                        </p>
+                        <p className={`text-xs font-semibold ${pixExpired ? "text-destructive" : "text-accent"}`}>
+                          {pixExpired ? "QR Code expirado" : `Tempo restante: ${formattedPixCountdown}`}
+                        </p>
+                      </>
                     ) : null}
                   </div>
 
@@ -314,6 +345,7 @@ const CheckoutPage = () => {
                       variant="outline"
                       className="mt-3 w-full"
                       onClick={copyPixCode}
+                      disabled={pixExpired}
                     >
                       <Copy className="mr-2 h-4 w-4" />
                       Copiar codigo PIX
@@ -338,7 +370,9 @@ const CheckoutPage = () => {
                   ? "Processando..."
                   : selectedMethod === "pix"
                     ? pixPayment
-                      ? "Gerar novo QR PIX"
+                      ? pixExpired
+                        ? "Gerar novo QR PIX"
+                        : "Regerar QR PIX"
                       : "Gerar PIX"
                     : "Continuar no Mercado Pago"}
               </Button>
