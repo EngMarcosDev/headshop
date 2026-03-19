@@ -84,7 +84,12 @@ const ProductCard = ({
   };
 
   const openDetails = () => {
-    navigate(`/produto/${id}`);
+    const targetPath = `/produto/${id}`;
+    if (isMobile) {
+      window.open(targetPath, "_blank", "noopener,noreferrer");
+      return;
+    }
+    navigate(targetPath);
   };
 
   useEffect(() => {
