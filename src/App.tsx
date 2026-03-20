@@ -11,6 +11,7 @@ import CartSidebar from "@/components/CartSidebar";
 import CookieConsent from "@/components/CookieConsent";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import AbacaxiTI from "@/components/AbacaxiTI";
+import SitePopupManager from "@/components/SitePopupManager";
 import Index from "./pages/Index";
 import CategoryPage from "./pages/CategoryPage";
 import ProductPage from "./pages/ProductPage";
@@ -59,6 +60,7 @@ const AppShell = () => {
       <CartSidebar />
       <WhatsAppFloat visible={showSocialFloat} />
       <AbacaxiTI />
+      <SitePopupManager />
 
       <BrowserRouter>
         <Routes>

@@ -6,9 +6,15 @@ import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProductsByCategory } from "@/api/products";
+import { fetchStoreCategories } from "@/api/categories";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { HEADSHOP_CATEGORIES, getCategoryBySlug, normalizeCategorySlug } from "@/lib/categoryCatalog";
+import {
+  HEADSHOP_CATEGORIES,
+  buildCategoryFromApi,
+  getCategoryBySlug,
+  normalizeCategorySlug,
+} from "@/lib/categoryCatalog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const normalizeText = (value: unknown) =>
@@ -23,7 +29,16 @@ const formatNumber = new Intl.NumberFormat("pt-BR");
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const normalizedSlug = normalizeCategorySlug(slug);
-  const activeCategory = getCategoryBySlug(normalizedSlug);
+  const categoriesQuery = useQuery({
+    queryKey: ["categories", "category-page"],
+    queryFn: fetchStoreCategories,
+    staleTime: 120000,
+  });
+  const siteCategories = useMemo(() => {
+    const fromApi = (categoriesQuery.data ?? []).map((entry) => buildCategoryFromApi(entry));
+    return fromApi.length > 0 ? fromApi : HEADSHOP_CATEGORIES;
+  }, [categoriesQuery.data]);
+  const activeCategory = getCategoryBySlug(normalizedSlug, siteCategories);
   const [priceSort, setPriceSort] = useState<"none" | "asc" | "desc">("none");
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
 
@@ -136,7 +151,7 @@ const CategoryPage = () => {
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Categorias</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {HEADSHOP_CATEGORIES.filter((category) => category.slug !== "banners").map((category) => {
+                {siteCategories.filter((category) => category.slug !== "banners").map((category) => {
                   const selected = category.slug === activeCategory.slug;
                   return (
                     <Link

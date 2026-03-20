@@ -1,8 +1,25 @@
 import { Link } from "react-router-dom";
-import { HEADSHOP_CATEGORIES } from "@/lib/categoryCatalog";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchStoreCategories } from "@/api/categories";
+import { HEADSHOP_CATEGORIES, buildCategoryFromApi } from "@/lib/categoryCatalog";
 
 const CategoryNav = () => {
-  const visibleCategories = HEADSHOP_CATEGORIES.filter((category) => category.slug !== "banners");
+  const categoriesQuery = useQuery({
+    queryKey: ["categories", "site-nav"],
+    queryFn: fetchStoreCategories,
+    staleTime: 120000,
+  });
+
+  const visibleCategories = useMemo(() => {
+    const fromApi = (categoriesQuery.data ?? [])
+      .map((entry) => buildCategoryFromApi(entry))
+      .filter((category) => category.slug !== "banners");
+
+    return fromApi.length > 0
+      ? fromApi
+      : HEADSHOP_CATEGORIES.filter((category) => category.slug !== "banners");
+  }, [categoriesQuery.data]);
 
   return (
     <section className="py-4 sm:py-6 md:py-8 lg:py-10 px-3 sm:px-4">

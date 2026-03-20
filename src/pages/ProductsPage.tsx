@@ -6,7 +6,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import { fetchAllProducts } from "@/api/products";
-import { HEADSHOP_CATEGORIES } from "@/lib/categoryCatalog";
+import { fetchStoreCategories } from "@/api/categories";
+import { HEADSHOP_CATEGORIES, buildCategoryFromApi } from "@/lib/categoryCatalog";
 import { cn } from "@/lib/utils";
 
 const normalizeText = (value: unknown) =>
@@ -27,8 +28,18 @@ const ProductsPage = () => {
     staleTime: 120000,
     retry: 1,
   });
+  const categoriesQuery = useQuery({
+    queryKey: ["categories", "products-page"],
+    queryFn: fetchStoreCategories,
+    staleTime: 120000,
+    retry: 1,
+  });
 
   const products = productsQuery.data ?? [];
+  const categories = useMemo(() => {
+    const fromApi = (categoriesQuery.data ?? []).map((entry) => buildCategoryFromApi(entry));
+    return fromApi.length > 0 ? fromApi : HEADSHOP_CATEGORIES;
+  }, [categoriesQuery.data]);
 
   const filteredProducts = useMemo(() => {
     const searchText = normalizeText(search);
@@ -80,7 +91,7 @@ const ProductsPage = () => {
               className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-accent"
             >
               <option value="all">Todas as categorias</option>
-              {HEADSHOP_CATEGORIES.filter((category) => category.slug !== "banners").map((category) => (
+              {categories.filter((category) => category.slug !== "banners").map((category) => (
                 <option key={category.slug} value={category.slug}>
                   {category.name}
                 </option>
@@ -90,7 +101,7 @@ const ProductsPage = () => {
         </section>
 
         <div className="mb-4 flex flex-wrap gap-2">
-          {HEADSHOP_CATEGORIES.filter((category) => category.slug !== "banners").map((category) => {
+          {categories.filter((category) => category.slug !== "banners").map((category) => {
             const selected = categoryFilter === category.slug;
             return (
               <button

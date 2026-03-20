@@ -24,23 +24,34 @@ const AboutPage = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Sobre nos</p>
           <h1 className="mt-2 font-display text-3xl font-bold text-foreground md:text-4xl">Bacaxita HeadShop</h1>
 
-          <div className="mt-6 space-y-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-            <p>
-              A Bacaxita nasceu para oferecer uma experiencia moderna no universo headshop, unindo curadoria
-              inteligente, qualidade real e atendimento de verdade.
-            </p>
-            <p>
-              Trabalhamos com foco em autenticidade, confianca e evolucao continua, sempre buscando produtos que
-              entreguem desempenho, estilo e consistencia para o seu dia a dia.
-            </p>
-            <p>
-              Mais do que vender itens, queremos construir uma vivencia completa: compra simples, suporte humano e uma
-              marca que respeita a cultura de quem vive esse mercado.
-            </p>
-            <p>
-              Nosso compromisso e claro: manter um catalogo confiavel, entrega transparente e comunicacao objetiva em
-              cada etapa da jornada.
-            </p>
+          <div className="mt-6 grid gap-6 md:grid-cols-[1.3fr_1fr] md:items-start">
+            <div className="space-y-4 text-sm leading-relaxed text-muted-foreground md:text-base">
+              <p>
+                A nossa historia e quase uma lenda urbana: um casal rebelde sobrevive em um mundo pos-explosao
+                radioativa que gerou apenas anomalias cerebrais.
+              </p>
+              <p>
+                Nessa loucura toda, a Bacaxita ganhou o poder de curar atraves do olhar, enquanto o Bacaxito ganhou o
+                poder de criar atraves do pensamento.
+              </p>
+              <p>
+                Juntos, os dois vivem fugindo da Organizacao dos Porcos Malvados, que faz de tudo para destruir a
+                plantacao de abacaxis lombrosos.
+              </p>
+              <p>
+                A marca nasceu desse universo: criativa, irreverente, com produtos pensados para quem quer autenticidade
+                e uma experiencia divertida de ponta a ponta.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-muted/20 p-3">
+              <img
+                src="/assets/Abacaxita/Icons/IMG_1205.PNG"
+                alt="Abacaxi em quadrinhos"
+                className="h-full w-full rounded-lg object-cover"
+              />
+              <p className="mt-2 text-xs text-muted-foreground">Abacaxi em quadrinhos oficial da tripulacao Bacaxita.</p>
+            </div>
           </div>
         </section>
       </main>

@@ -5,9 +5,10 @@ import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchProductById } from "@/api/products";
+import { fetchStoreCategories } from "@/api/categories";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { getCategoryBySlug } from "@/lib/categoryCatalog";
+import { HEADSHOP_CATEGORIES, buildCategoryFromApi, getCategoryBySlug } from "@/lib/categoryCatalog";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
@@ -28,6 +29,11 @@ const ProductPage = () => {
     enabled: Number.isFinite(productId) && productId > 0,
     staleTime: 120000,
   });
+  const categoriesQuery = useQuery({
+    queryKey: ["categories", "product-page"],
+    queryFn: fetchStoreCategories,
+    staleTime: 120000,
+  });
 
   const product = productQuery.data;
   const gallery = useMemo(() => {
@@ -41,7 +47,13 @@ const ProductPage = () => {
     product?.discountActive === true &&
     typeof product.originalPrice === "number" &&
     product.originalPrice > product.price;
-  const categoryLabel = product?.category ? getCategoryBySlug(product.category)?.name || product.category : "";
+  const categoryList = useMemo(() => {
+    const fromApi = (categoriesQuery.data ?? []).map((entry) => buildCategoryFromApi(entry));
+    return fromApi.length > 0 ? fromApi : HEADSHOP_CATEGORIES;
+  }, [categoriesQuery.data]);
+  const categoryLabel = product?.category
+    ? getCategoryBySlug(product.category, categoryList)?.name || product.category
+    : "";
   const productDetails = [
     { label: "Categoria", value: categoryLabel },
     { label: "Subcategoria", value: product?.subcategory },
