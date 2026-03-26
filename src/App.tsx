@@ -2,20 +2,29 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import SignupPopup from "@/components/SignupPopup";
 import CartSidebar from "@/components/CartSidebar";
 import CookieConsent from "@/components/CookieConsent";
+import SitePopupManager from "@/components/SitePopupManager";
+import AbacaxiTI from "@/components/AbacaxiTI";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import Index from "./pages/Index";
 import CategoryPage from "./pages/CategoryPage";
-import NotFound from "./pages/NotFound";
+import ProductsPage from "./pages/ProductsPage";
+import ProductPage from "./pages/ProductPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import WalletPage from "./pages/WalletPage";
 import HistoryPage from "./pages/HistoryPage";
 import ErpAccessPage from "./pages/ErpAccessPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentErrorPage from "./pages/PaymentErrorPage";
 import PaymentPendingPage from "./pages/PaymentPendingPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,19 +45,27 @@ const App = () => (
         <CartProvider>
           <Toaster />
           <Sonner />
-          <SignupPopup />
-          <CartSidebar />
-          <CookieConsent />
           <BrowserRouter>
+            <AbacaxiTI />
+            <SignupPopup />
+            <CartSidebar />
+            <CookieConsent />
+            <WhatsAppFloat />
+            <SitePopupManager />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/categoria/:slug" element={<CategoryPage />} />
+              <Route path="/produtos" element={<ProductsPage />} />
+              <Route path="/produto/:id" element={<ProductPage />} />
+              <Route path="/sobre" element={<AboutPage />} />
+              <Route path="/contato" element={<ContactPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/carteira" element={<WalletPage />} />
               <Route path="/historico" element={<HistoryPage />} />
               <Route path="/erp" element={<ErpAccessPage />} />
               <Route path="/pagamento/sucesso" element={<PaymentSuccessPage />} />
               <Route path="/pagamento/erro" element={<PaymentErrorPage />} />
               <Route path="/pagamento/pendente" element={<PaymentPendingPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

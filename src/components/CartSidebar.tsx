@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { X, Minus, Plus, Trash2, ShoppingBag, AlertCircle, Loader } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 const CartSidebar = () => {
+  const navigate = useNavigate();
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -33,7 +35,7 @@ const CartSidebar = () => {
 
     setCheckoutLoading(true);
     setIsOpen(false);
-    window.location.assign("/checkout");
+    navigate("/checkout");
   };
 
   if (!isOpen) return null;
