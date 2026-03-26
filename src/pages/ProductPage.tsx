@@ -135,6 +135,17 @@ const ProductPage = () => {
               <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">{product.name}</h1>
               {product.description ? <p className="text-sm text-muted-foreground">{product.description}</p> : null}
 
+              {product.details ? (
+                <div className="rounded-2xl border border-border bg-white/80 p-4 shadow-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Detalhes do produto
+                  </p>
+                  <div className="mt-3 whitespace-pre-line text-sm leading-6 text-foreground">
+                    {product.details}
+                  </div>
+                </div>
+              ) : null}
+
               {productDetails.length > 0 ? (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {productDetails.map((detail) => (

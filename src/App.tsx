@@ -1,32 +1,21 @@
-import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import SignupPopup from "@/components/SignupPopup";
 import CartSidebar from "@/components/CartSidebar";
 import CookieConsent from "@/components/CookieConsent";
-import WhatsAppFloat from "@/components/WhatsAppFloat";
-import AbacaxiTI from "@/components/AbacaxiTI";
-import SitePopupManager from "@/components/SitePopupManager";
 import Index from "./pages/Index";
 import CategoryPage from "./pages/CategoryPage";
-import ProductPage from "./pages/ProductPage";
-import ProductsPage from "./pages/ProductsPage";
-import AboutPage from "./pages/AboutPage";
-import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 import HistoryPage from "./pages/HistoryPage";
 import ErpAccessPage from "./pages/ErpAccessPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentErrorPage from "./pages/PaymentErrorPage";
 import PaymentPendingPage from "./pages/PaymentPendingPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import WalletPage from "./pages/WalletPage";
-import { applyTheme, resolveInitialTheme } from "@/lib/theme";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,56 +29,29 @@ const queryClient = new QueryClient({
   },
 });
 
-const AppShell = () => {
-  const [showSocialFloat, setShowSocialFloat] = useState(false);
-
-  useEffect(() => {
-    applyTheme(resolveInitialTheme());
-    const timer = window.setTimeout(() => {
-      setShowSocialFloat(true);
-    }, 3000);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  return (
-    <>
-      <Toaster />
-      <Sonner />
-      <CookieConsent />
-      <SignupPopup />
-      <CartSidebar />
-      <WhatsAppFloat visible={showSocialFloat} />
-      <AbacaxiTI />
-      <SitePopupManager />
-
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/produtos" element={<ProductsPage />} />
-          <Route path="/sobre" element={<AboutPage />} />
-          <Route path="/contato" element={<ContactPage />} />
-          <Route path="/categoria/:slug" element={<CategoryPage />} />
-          <Route path="/produto/:id" element={<ProductPage />} />
-          <Route path="/historico" element={<HistoryPage />} />
-          <Route path="/erp" element={<ErpAccessPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/carteira" element={<WalletPage />} />
-          <Route path="/pagamento/sucesso" element={<PaymentSuccessPage />} />
-          <Route path="/pagamento/erro" element={<PaymentErrorPage />} />
-          <Route path="/pagamento/pendente" element={<PaymentPendingPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </>
-  );
-};
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
         <CartProvider>
-          <AppShell />
+          <Toaster />
+          <Sonner />
+          <SignupPopup />
+          <CartSidebar />
+          <CookieConsent />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/categoria/:slug" element={<CategoryPage />} />
+              <Route path="/historico" element={<HistoryPage />} />
+              <Route path="/erp" element={<ErpAccessPage />} />
+              <Route path="/pagamento/sucesso" element={<PaymentSuccessPage />} />
+              <Route path="/pagamento/erro" element={<PaymentErrorPage />} />
+              <Route path="/pagamento/pendente" element={<PaymentPendingPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
         </CartProvider>
       </AuthProvider>
     </TooltipProvider>

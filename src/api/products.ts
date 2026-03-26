@@ -84,6 +84,7 @@ const normalizeProduct = (value: any): Product => {
     id: Number(value?.id || 0),
     name: String(value?.name || "Produto"),
     description: typeof value?.description === "string" ? value.description : undefined,
+    details: typeof value?.details === "string" ? value.details : undefined,
     price: Number(value?.price || 0),
     originalPrice: value?.originalPrice != null ? Number(value.originalPrice) : null,
     discountPercent: value?.discountPercent != null ? Number(value.discountPercent) : null,

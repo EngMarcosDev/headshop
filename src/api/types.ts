@@ -2,6 +2,7 @@ export interface Product {
   id: number;
   name: string;
   description?: string;
+  details?: string;
   price: number;
   originalPrice?: number | null;
   discountPercent?: number | null;
