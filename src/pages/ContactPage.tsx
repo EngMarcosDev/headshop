@@ -1,10 +1,10 @@
 import { FormEvent, useState } from "react";
-import { ArrowLeft, Mail, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const WHATSAPP_NUMBER = "5581981705445";
+const CONTACT_EMAIL = "adm.bacaxita@gmail.com";
 
 const ContactPage = () => {
   const navigate = useNavigate();
@@ -14,17 +14,17 @@ const ContactPage = () => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const baseMessage = [
-      "Oi, equipe Abacaxita! Vim pelo site e gostaria de atendimento.",
+    const subject = encodeURIComponent("Contato pelo site Abacaxita");
+    const body = encodeURIComponent([
+      "Oi, equipe Abacaxita! Vim pelo site e gostaria de atendimento por email.",
       name ? `Nome: ${name}` : "",
       email ? `Email: ${email}` : "",
       message ? `Mensagem: ${message}` : "",
     ]
       .filter(Boolean)
-      .join("\n");
+      .join("\n"));
 
-    const encoded = encodeURIComponent(baseMessage);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank", "noopener,noreferrer");
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -47,32 +47,16 @@ const ContactPage = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Contato</p>
           <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Fale com a Abacaxita</h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            Atendimento rapido por WhatsApp para pedidos, duvidas, suporte e novidades.
+            Para atendimento por escrito, envie sua mensagem por email. O WhatsApp continua no rodape e no botao flutuante.
           </p>
 
           <div className="mt-6 space-y-3 text-sm">
             <a
-              href="https://wa.me/5581981705445"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition hover:border-accent"
-            >
-              <MessageCircle className="h-4 w-4 text-accent" />
-              <span>WhatsApp: (81) 98170-5445</span>
-            </a>
-            <a
-              href="mailto:adm.bacaxita@gmail.com"
+              href={`mailto:${CONTACT_EMAIL}`}
               className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition hover:border-accent"
             >
               <Mail className="h-4 w-4 text-accent" />
-              <span>Email: adm.bacaxita@gmail.com</span>
-            </a>
-            <a
-              href="tel:+5581981705445"
-              className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition hover:border-accent"
-            >
-              <Phone className="h-4 w-4 text-accent" />
-              <span>Telefone: (81) 98170-5445</span>
+              <span>Email: {CONTACT_EMAIL}</span>
             </a>
           </div>
         </section>
@@ -105,7 +89,7 @@ const ContactPage = () => {
               type="submit"
               className="inline-flex h-11 items-center justify-center rounded-md bg-rasta-green px-5 text-sm font-semibold text-white transition hover:bg-rasta-green/90"
             >
-              Enviar no WhatsApp
+              Enviar por email
             </button>
           </form>
         </section>

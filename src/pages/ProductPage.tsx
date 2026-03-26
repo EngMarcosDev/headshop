@@ -1,7 +1,7 @@
 ﻿import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Search, ShoppingBag } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchProductById } from "@/api/products";
@@ -100,15 +100,22 @@ const ProductPage = () => {
         ) : (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <section className="space-y-3">
-              <div className="rounded-[28px] border border-border bg-card p-3 shadow-sm">
-                <img
-                  src={selectedImage}
-                  alt={product.name}
-                  className="h-[320px] w-full rounded-lg object-contain md:h-[440px]"
-                  onError={(event) => {
-                    event.currentTarget.src = "/placeholder.svg";
-                  }}
-                />
+              <div className="rounded-[30px] border border-border bg-card/90 p-3 shadow-sm dark:bg-card/75">
+                <div className="group relative overflow-hidden rounded-[24px] bg-muted/25">
+                  <img
+                    src={selectedImage}
+                    alt={product.name}
+                    className="h-[320px] w-full rounded-[24px] object-contain transition-transform duration-300 group-hover:scale-[1.02] md:h-[440px]"
+                    onError={(event) => {
+                      event.currentTarget.src = "/placeholder.svg";
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 group-hover:bg-black/15 group-hover:opacity-100 dark:group-hover:bg-black/30">
+                    <span className="rounded-full border border-white/40 bg-black/55 p-3 text-white shadow-lg backdrop-blur-sm">
+                      <Search className="h-5 w-5" />
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {gallery.length > 1 ? (
@@ -118,11 +125,14 @@ const ProductPage = () => {
                       key={`${image}-${index}`}
                       type="button"
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`h-16 w-16 overflow-hidden rounded-md border ${
+                      className={`group relative h-16 w-16 overflow-hidden rounded-xl border ${
                         index === selectedImageIndex ? "border-accent" : "border-border"
                       }`}
                     >
                       <img src={image} alt={`${product.name} miniatura ${index + 1}`} className="h-full w-full object-cover" />
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/20 group-hover:opacity-100">
+                        <Search className="h-4 w-4 text-white" />
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -132,15 +142,15 @@ const ProductPage = () => {
             </section>
 
             <section className="space-y-4">
-              <div className="rounded-[28px] border border-border bg-white/85 p-5 shadow-sm">
+              <div className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm dark:bg-card/75">
                 <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">{product.name}</h1>
                 {product.description ? <p className="mt-3 text-sm text-muted-foreground">{product.description}</p> : null}
               </div>
 
               {product.details ? (
-                <div className="rounded-[28px] border border-border bg-white/85 p-5 shadow-sm">
+                <div className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm dark:bg-card/75">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Detalhes do produto
+                    Detalhes para o cliente
                   </p>
                   <div className="mt-3 whitespace-pre-line text-sm leading-6 text-foreground">
                     {product.details}
@@ -149,10 +159,10 @@ const ProductPage = () => {
               ) : null}
 
               {productDetails.length > 0 ? (
-                <div className="rounded-[28px] border border-border bg-white/85 p-5 shadow-sm">
+                <div className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm dark:bg-card/75">
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {productDetails.map((detail) => (
-                      <div key={detail.label} className="rounded-2xl border border-border bg-muted/20 px-3 py-2">
+                      <div key={detail.label} className="rounded-2xl border border-border bg-muted/20 px-3 py-2 dark:bg-muted/35">
                         <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{detail.label}</p>
                         <p className="mt-1 text-sm font-medium text-foreground">{detail.value}</p>
                       </div>
@@ -161,7 +171,7 @@ const ProductPage = () => {
                 </div>
               ) : null}
 
-              <div className="rounded-[28px] border border-border bg-white/85 p-5 shadow-sm">
+              <div className="rounded-[28px] border border-border bg-card/90 p-5 shadow-sm dark:bg-card/75">
                 {hasDiscount ? (
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground line-through">{formatCurrency(Number(product.originalPrice || 0))}</p>

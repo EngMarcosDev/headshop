@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Compass, Instagram, MessageCircle, X } from "lucide-react";
+import { Instagram, MessageCircle, X } from "lucide-react";
 
-type SocialId = "whatsapp" | "instagram" | "tour";
+type SocialId = "whatsapp" | "instagram";
 
 type SocialTarget = {
   id: SocialId;
@@ -25,13 +25,6 @@ const SOCIALS: SocialTarget[] = [
     href: "https://www.instagram.com/abacaxitashop?igsh=N2NncGpidDg4NmJq&utm_source=qr",
     gradient: "linear-gradient(135deg, #405de6 0%, #c13584 45%, #fd1d1d 70%, #ffdc80 100%)",
     icon: <Instagram className="h-7 w-7 text-white" />,
-  },
-  {
-    id: "tour",
-    label: "Tour assistido (em breve)",
-    href: "/#tour-assistido",
-    gradient: "linear-gradient(135deg, #8a5a3a 0%, #6b3f27 100%)",
-    icon: <Compass className="h-7 w-7 text-white" />,
   },
 ];
 
@@ -98,15 +91,10 @@ const WhatsAppFloat = ({ visible = true }: WhatsAppFloatProps) => {
       <a
         key={activeSocial.id}
         href={activeSocial.href}
-        target={activeSocial.id === "tour" ? undefined : "_blank"}
-        rel={activeSocial.id === "tour" ? undefined : "noopener noreferrer"}
+        target="_blank"
+        rel="noopener noreferrer"
         aria-label={activeSocial.label}
         title={activeSocial.label}
-        onClick={(event) => {
-          if (activeSocial.id === "tour") {
-            event.preventDefault();
-          }
-        }}
         className={`social-float-breathe flex h-[52px] w-[52px] items-center justify-center rounded-full shadow-lg transition-all duration-900 hover:scale-110 hover:shadow-xl sm:h-14 sm:w-14 ${
           isSwitching ? "scale-[0.96] opacity-50" : "scale-100 opacity-100"
         }`}

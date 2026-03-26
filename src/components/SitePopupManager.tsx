@@ -59,10 +59,14 @@ const SitePopupManager = () => {
       .filter((popup) => !popup.dismissible || !isDismissed(popup));
     return list;
   }, [popupsQuery.data]);
+  const queueSignature = useMemo(
+    () => queue.map((popup) => `${popup.id}:${popup.updatedAt || "static"}:${popup.isActive}`).join("|"),
+    [queue]
+  );
 
   useEffect(() => {
     setIndex(0);
-  }, [queue.length]);
+  }, [queueSignature]);
 
   const popup = queue[index];
   const isOpen = Boolean(popup);

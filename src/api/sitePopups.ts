@@ -1,4 +1,4 @@
-import { apiGet } from "./client";
+import { apiGet, apiGetWithBase, ERP_API_BASE } from "./client";
 
 export type SitePopupType = "FIRST" | "ALERT" | "NEWS";
 export type SitePopupLevel = "INFO" | "SUCCESS" | "WARNING" | "ERROR";
@@ -22,10 +22,20 @@ export interface SitePopup {
   updatedAt?: string;
 }
 
+const normalizePopupList = (payload: unknown): SitePopup[] => (Array.isArray(payload) ? payload : []);
+
 export async function fetchSitePopups(): Promise<SitePopup[]> {
   try {
     const payload = await apiGet<SitePopup[]>("/site/popups");
-    return Array.isArray(payload) ? payload : [];
+    const normalized = normalizePopupList(payload);
+    if (normalized.length > 0) return normalized;
+  } catch {
+    // fallback below
+  }
+
+  try {
+    const payload = await apiGetWithBase<SitePopup[]>(ERP_API_BASE, "/site/popups");
+    return normalizePopupList(payload);
   } catch {
     return [];
   }
