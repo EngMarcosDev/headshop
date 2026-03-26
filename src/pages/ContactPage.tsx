@@ -1,10 +1,13 @@
 import { FormEvent, useState } from "react";
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft, Instagram, Mail, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
-const CONTACT_EMAIL = "adm.bacaxita@gmail.com";
+import {
+  CONTACT_EMAIL,
+  CONTACT_INSTAGRAM_URL,
+  CONTACT_WHATSAPP_URL,
+} from "@/lib/socialLinks";
 
 const ContactPage = () => {
   const navigate = useNavigate();
@@ -46,17 +49,31 @@ const ContactPage = () => {
         <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Contato</p>
           <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Fale com a Abacaxita</h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Para atendimento por escrito, envie sua mensagem por email. O WhatsApp continua no rodape e no botao flutuante.
-          </p>
-
-          <div className="mt-6 space-y-3 text-sm">
+          <div className="mt-6 grid gap-3 text-sm">
             <a
               href={`mailto:${CONTACT_EMAIL}`}
               className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition hover:border-accent"
             >
               <Mail className="h-4 w-4 text-accent" />
               <span>Email: {CONTACT_EMAIL}</span>
+            </a>
+            <a
+              href={CONTACT_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition hover:border-accent"
+            >
+              <MessageCircle className="h-4 w-4 text-accent" />
+              <span>WhatsApp</span>
+            </a>
+            <a
+              href={CONTACT_INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition hover:border-accent"
+            >
+              <Instagram className="h-4 w-4 text-accent" />
+              <span>Instagram</span>
             </a>
           </div>
         </section>

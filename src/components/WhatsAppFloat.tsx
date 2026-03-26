@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Instagram, MessageCircle, X } from "lucide-react";
+import { CONTACT_INSTAGRAM_URL, CONTACT_WHATSAPP_URL } from "@/lib/socialLinks";
 
 type SocialId = "whatsapp" | "instagram";
 
@@ -15,14 +16,14 @@ const SOCIALS: SocialTarget[] = [
   {
     id: "whatsapp",
     label: "Fale no WhatsApp",
-    href: "https://wa.me/5581981705445",
+    href: CONTACT_WHATSAPP_URL,
     gradient: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
     icon: <MessageCircle className="h-7 w-7 fill-white text-white" />,
   },
   {
     id: "instagram",
     label: "Abrir Instagram",
-    href: "https://www.instagram.com/abacaxitashop?igsh=N2NncGpidDg4NmJq&utm_source=qr",
+    href: CONTACT_INSTAGRAM_URL,
     gradient: "linear-gradient(135deg, #405de6 0%, #c13584 45%, #fd1d1d 70%, #ffdc80 100%)",
     icon: <Instagram className="h-7 w-7 text-white" />,
   },
