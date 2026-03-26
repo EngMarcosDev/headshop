@@ -100,7 +100,7 @@ const ProductPage = () => {
         ) : (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <section className="space-y-3">
-              <div className="rounded-xl border border-border bg-card p-3">
+              <div className="rounded-[28px] border border-border bg-card p-3 shadow-sm">
                 <img
                   src={selectedImage}
                   alt={product.name}
@@ -132,11 +132,13 @@ const ProductPage = () => {
             </section>
 
             <section className="space-y-4">
-              <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">{product.name}</h1>
-              {product.description ? <p className="text-sm text-muted-foreground">{product.description}</p> : null}
+              <div className="rounded-[28px] border border-border bg-white/85 p-5 shadow-sm">
+                <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">{product.name}</h1>
+                {product.description ? <p className="mt-3 text-sm text-muted-foreground">{product.description}</p> : null}
+              </div>
 
               {product.details ? (
-                <div className="rounded-2xl border border-border bg-white/80 p-4 shadow-sm">
+                <div className="rounded-[28px] border border-border bg-white/85 p-5 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     Detalhes do produto
                   </p>
@@ -147,75 +149,79 @@ const ProductPage = () => {
               ) : null}
 
               {productDetails.length > 0 ? (
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {productDetails.map((detail) => (
-                    <div key={detail.label} className="rounded-lg border border-border bg-muted/20 px-3 py-2">
-                      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{detail.label}</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">{detail.value}</p>
-                    </div>
-                  ))}
+                <div className="rounded-[28px] border border-border bg-white/85 p-5 shadow-sm">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {productDetails.map((detail) => (
+                      <div key={detail.label} className="rounded-2xl border border-border bg-muted/20 px-3 py-2">
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{detail.label}</p>
+                        <p className="mt-1 text-sm font-medium text-foreground">{detail.value}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 
-              {hasDiscount ? (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground line-through">{formatCurrency(Number(product.originalPrice || 0))}</p>
-                  <p className="text-3xl font-bold text-accent dark:text-white">{formatCurrency(product.price)}</p>
-                </div>
-              ) : (
-                <p className="text-3xl font-bold text-accent dark:text-white">{formatCurrency(product.price)}</p>
-              )}
-
-              {quantity === 0 ? (
-                <Button
-                  onClick={() =>
-                    addItem({
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      image: product.image,
-                      category: product.category,
-                    })
-                  }
-                  className="h-11 w-full bg-rasta-green text-white hover:bg-rasta-green/90"
-                >
-                  <ShoppingBag className="mr-2 h-4 w-4" />
-                  Adicionar a sacola
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex h-10 items-center justify-center gap-2 rounded-md bg-muted">
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-rasta-red hover:bg-rasta-red/20"
-                      onClick={() => updateQuantity(product.id, quantity - 1)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="min-w-[28px] text-center text-base font-semibold">{quantity}</span>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-rasta-green hover:bg-rasta-green/20"
-                      onClick={() =>
-                        addItem({
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          image: product.image,
-                          category: product.category,
-                        })
-                      }
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+              <div className="rounded-[28px] border border-border bg-white/85 p-5 shadow-sm">
+                {hasDiscount ? (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground line-through">{formatCurrency(Number(product.originalPrice || 0))}</p>
+                    <p className="text-3xl font-bold text-accent dark:text-white">{formatCurrency(product.price)}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">Total: {formatCurrency(product.price * quantity)}</p>
-                </div>
-              )}
+                ) : (
+                  <p className="text-3xl font-bold text-accent dark:text-white">{formatCurrency(product.price)}</p>
+                )}
+
+                {quantity === 0 ? (
+                  <Button
+                    onClick={() =>
+                      addItem({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        image: product.image,
+                        category: product.category,
+                      })
+                    }
+                    className="mt-4 h-11 w-full rounded-2xl bg-rasta-green text-white hover:bg-rasta-green/90"
+                  >
+                    <ShoppingBag className="mr-2 h-4 w-4" />
+                    Adicionar a sacola
+                  </Button>
+                ) : (
+                  <div className="mt-4 space-y-2">
+                    <div className="flex h-10 items-center justify-center gap-2 rounded-2xl bg-muted">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-rasta-red hover:bg-rasta-red/20"
+                        onClick={() => updateQuantity(product.id, quantity - 1)}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="min-w-[28px] text-center text-base font-semibold">{quantity}</span>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-rasta-green hover:bg-rasta-green/20"
+                        onClick={() =>
+                          addItem({
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            image: product.image,
+                            category: product.category,
+                          })
+                        }
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Total: {formatCurrency(product.price * quantity)}</p>
+                  </div>
+                )}
+              </div>
             </section>
           </div>
         )}
