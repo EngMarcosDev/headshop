@@ -12,14 +12,17 @@ const popupOrder = (popup: SitePopup) => {
   return 2;
 };
 
-const isDismissed = (popupId: number) => {
+const dismissKey = (popup: Pick<SitePopup, "id" | "updatedAt">) =>
+  `${DISMISS_PREFIX}${popup.id}:${popup.updatedAt || "static"}`;
+
+const isDismissed = (popup: Pick<SitePopup, "id" | "updatedAt">) => {
   if (typeof window === "undefined") return false;
-  return Boolean(window.localStorage.getItem(`${DISMISS_PREFIX}${popupId}`));
+  return Boolean(window.localStorage.getItem(dismissKey(popup)));
 };
 
-const dismiss = (popupId: number) => {
+const dismiss = (popup: Pick<SitePopup, "id" | "updatedAt">) => {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(`${DISMISS_PREFIX}${popupId}`, String(Date.now()));
+  window.localStorage.setItem(dismissKey(popup), String(Date.now()));
 };
 
 const resolvePopupImage = (popup: SitePopup) => {
@@ -53,7 +56,7 @@ const SitePopupManager = () => {
   const queue = useMemo(() => {
     const list = [...(popupsQuery.data ?? [])]
       .sort((a, b) => popupOrder(a) - popupOrder(b) || a.priority - b.priority)
-      .filter((popup) => !popup.dismissible || !isDismissed(popup.id));
+      .filter((popup) => !popup.dismissible || !isDismissed(popup));
     return list;
   }, [popupsQuery.data]);
 
@@ -66,7 +69,7 @@ const SitePopupManager = () => {
 
   const closePopup = () => {
     if (!popup) return;
-    if (popup.dismissible) dismiss(popup.id);
+    if (popup.dismissible) dismiss(popup);
     setIndex((current) => current + 1);
   };
 

@@ -19,6 +19,7 @@ export interface SitePopup {
   dismissible: boolean;
   displaySeconds?: number | null;
   priority: number;
+  updatedAt?: string;
 }
 
 export async function fetchSitePopups(): Promise<SitePopup[]> {

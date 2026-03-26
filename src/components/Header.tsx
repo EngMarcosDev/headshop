@@ -39,7 +39,9 @@ const Header = () => {
         <nav className="bg-header">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
             <h1 className="flex items-center gap-2 text-lg font-display font-bold text-header-foreground tracking-[0.2em] sm:text-2xl sm:tracking-widest">
-              <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-7 w-7 rounded-md object-contain sm:h-8 sm:w-8" />
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-sm sm:h-9 sm:w-9">
+                <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-7 w-7 rounded-full object-cover ring-1 ring-white/40 sm:h-8 sm:w-8" />
+              </span>
               <span>ABACAXITA</span>
             </h1>
 
