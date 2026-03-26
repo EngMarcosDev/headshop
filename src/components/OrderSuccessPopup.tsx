@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
-import pedidoOk from "@/assets/bacaxito-pedido-ok.png";
 import { Button } from "./ui/button";
+
+const ORDER_SUCCESS_IMAGE = "/assets/branding/bacaxito-pedido-ok.png";
 
 interface OrderSuccessPopupProps {
   orderId: number | string;
@@ -40,7 +41,7 @@ const OrderSuccessPopup = ({ orderId, onClose }: OrderSuccessPopupProps) => {
 
           <div className="rounded-xl overflow-hidden border border-border/60 bg-muted/30 mb-4">
             <img
-              src={pedidoOk}
+              src={ORDER_SUCCESS_IMAGE}
               alt="Pedido realizado com sucesso"
               className="w-full h-auto object-cover"
               loading="lazy"

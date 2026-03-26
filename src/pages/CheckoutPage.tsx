@@ -11,7 +11,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE, joinUrl } from "@/api/client";
 import { formatPrice } from "@/lib/priceFormatter";
 import { notifyAbacaxiError } from "@/lib/abacaxiTI";
-import pineappleIcon from "@/assets/pineapple-icon.png";
+
+const BRAND_ICON = "/assets/branding/logo-headshop.png";
 
 const methodDescriptions: Record<CheckoutMethod, string> = {
   credit: "Voce sera redirecionado para o checkout do Mercado Pago e podera pagar no cartao de credito.",
@@ -311,7 +312,7 @@ const CheckoutPage = () => {
               {selectedMethod === "pix" ? (
                 <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
                   <div className="flex items-start gap-3">
-                    <img src={pineappleIcon} alt="Abacaxi Bacaxita" className="h-8 w-8 rounded-full object-cover" />
+                    <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-8 w-8 rounded-md object-contain" />
                     <div>
                       <p className="text-sm font-semibold text-amber-800">
                         Faltam so alguns passos para finalizar seu pedido.

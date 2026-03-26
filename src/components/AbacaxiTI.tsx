@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import pineappleIcon from "@/assets/pineapple-icon.png";
+
+const BRAND_ICON = "/assets/branding/pineapple-icon.png";
 
 type PopupState = {
   open: boolean;
@@ -37,8 +38,8 @@ const levelBadgeClass: Record<PopupState["level"], string> = {
 };
 
 const resolveIconUrl = (iconKey: string) => {
-  if (!iconKey?.trim()) return pineappleIcon;
-  return `/assets/Abacaxita/Icons/${iconKey.trim()}.PNG`;
+  if (!iconKey?.trim()) return BRAND_ICON;
+  return `/assets/status-icons/${iconKey.trim()}.png`;
 };
 
 const AbacaxiTI = () => {
@@ -115,7 +116,7 @@ const AbacaxiTI = () => {
               alt="AbacaxiTI"
               className="h-8 w-8 rounded-full border object-cover"
               onError={(event) => {
-                event.currentTarget.src = pineappleIcon;
+                event.currentTarget.src = BRAND_ICON;
               }}
             />
             <div>

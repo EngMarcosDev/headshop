@@ -46,7 +46,7 @@ const AboutPage = () => {
 
             <div className="rounded-xl border border-border bg-muted/20 p-3">
               <img
-                src="/assets/Abacaxita/Icons/IMG_1205.PNG"
+                src="/assets/branding/pineapple-comic.png"
                 alt="Abacaxi em quadrinhos"
                 className="h-full w-full rounded-lg object-cover"
               />

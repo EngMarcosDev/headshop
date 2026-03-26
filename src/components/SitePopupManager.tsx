@@ -25,7 +25,7 @@ const dismiss = (popupId: number) => {
 const resolvePopupImage = (popup: SitePopup) => {
   if (popup.imageUrl && popup.imageUrl.trim()) return popup.imageUrl;
   const iconName = popup.iconKey?.trim() || "icon_padrao";
-  return `/assets/Abacaxita/Icons/${iconName}.PNG`;
+  return `/assets/status-icons/${iconName}.png`;
 };
 
 const popupTypeLabel: Record<SitePopup["type"], string> = {
@@ -80,24 +80,26 @@ const SitePopupManager = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => (!open ? closePopup() : undefined)}>
-      <DialogContent className="max-w-md border-border bg-card">
+      <DialogContent className="max-w-lg border-border bg-card">
         <DialogHeader>
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <img
               src={resolvePopupImage(popup)}
               alt={popup.title}
               className="h-10 w-10 rounded-full border object-cover"
             />
-            <div>
+            <div className="min-w-0 flex-1">
               <p className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${popupLevelColor[popup.level]}`}>
                 {popup.level}
               </p>
-              <DialogTitle className="mt-1 text-left text-base">{popup.title}</DialogTitle>
+              <DialogTitle className="mt-1 text-left text-base leading-snug break-words">{popup.title}</DialogTitle>
             </div>
           </div>
         </DialogHeader>
 
-        <p className="text-sm leading-relaxed text-muted-foreground">{popup.message}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line break-words">
+          {popup.message}
+        </p>
         <p className="text-xs text-muted-foreground">{popupTypeLabel[popup.type]}</p>
 
         <div className="mt-2 flex flex-wrap justify-end gap-2">
