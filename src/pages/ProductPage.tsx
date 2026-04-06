@@ -129,12 +129,12 @@ const ProductPage = () => {
                   <button
                     type="button"
                     onClick={openZoom}
-                    className="group relative block w-full cursor-zoom-in overflow-hidden rounded-[24px] bg-muted/25"
+                    className="group relative block w-full cursor-zoom-in overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(248,234,193,0.52)_38%,rgba(141,101,57,0.14)_100%)]"
                   >
                     <img
                       src={selectedImage}
                       alt={product.name}
-                      className="h-[320px] w-full rounded-[24px] object-contain transition-transform duration-300 group-hover:scale-[1.03] md:h-[440px]"
+                      className="min-h-[280px] w-full rounded-[24px] object-contain p-3 transition-transform duration-300 group-hover:scale-[1.03] sm:min-h-[340px] md:min-h-[440px] md:p-5"
                       onError={(event) => {
                         event.currentTarget.src = "/placeholder.svg";
                       }}
@@ -151,7 +151,7 @@ const ProductPage = () => {
                 </div>
 
                 {gallery.length > 1 ? (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
                     {gallery.map((image, index) => (
                       <button
                         key={`${image}-${index}`}
@@ -163,11 +163,15 @@ const ProductPage = () => {
                           }
                           setSelectedImageIndex(index);
                         }}
-                        className={`group relative h-16 w-16 overflow-hidden rounded-xl border ${
+                        className={`group relative h-16 w-16 overflow-hidden rounded-xl border bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(248,234,193,0.45)_38%,rgba(141,101,57,0.12)_100%)] sm:h-20 sm:w-20 ${
                           index === selectedImageIndex ? "border-accent" : "border-border"
                         }`}
                       >
-                        <img src={image} alt={`${product.name} miniatura ${index + 1}`} className="h-full w-full object-cover" />
+                        <img
+                          src={image}
+                          alt={`${product.name} miniatura ${index + 1}`}
+                          className="h-full w-full object-contain p-1.5 sm:p-2"
+                        />
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/20 group-hover:opacity-100">
                           <Search className="h-4 w-4 text-white" />
                         </div>

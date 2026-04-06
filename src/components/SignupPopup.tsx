@@ -36,11 +36,18 @@ interface FormError {
   message: string;
 }
 
+type PopupMode = "login" | "register" | "verify";
+
+type PopupTriggerDetail = {
+  force?: boolean;
+  mode?: PopupMode;
+};
+
 const SignupPopup = () => {
   const { totalItems } = useCart();
   const { user, login, register, verifyEmail, resendVerification, googleLogin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [mode, setMode] = useState<"login" | "register" | "verify">("login");
+  const [mode, setMode] = useState<PopupMode>("login");
   const [error, setError] = useState<FormError | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -68,12 +75,15 @@ const SignupPopup = () => {
   const isLogged = Boolean(user?.email && user?.token);
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim();
 
-  const openPopup = (force = false) => {
+  const openPopup = (options?: PopupTriggerDetail) => {
     if (isLogged) return;
+    const force = Boolean(options?.force);
+    const nextMode = options?.mode;
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (force) {
-      setMode("login");
+    if (force || nextMode) {
+      setMode(nextMode || "login");
       setError(null);
+      setLoading(false);
     }
     setIsOpen(true);
   };
@@ -81,7 +91,7 @@ const SignupPopup = () => {
   // Auto-open popup on signup
   useEffect(() => {
     if (isLogged) return;
-    timerRef.current = window.setTimeout(() => openPopup(false), 4000);
+    timerRef.current = window.setTimeout(() => openPopup({ mode: "login" }), 4000);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
@@ -90,7 +100,7 @@ const SignupPopup = () => {
   // Auto-open popup on add to cart
   useEffect(() => {
     if (!isLogged && totalItems > prevTotalItemsRef.current) {
-      openPopup(false);
+      openPopup({ mode: "login" });
     }
     prevTotalItemsRef.current = totalItems;
   }, [totalItems, isLogged]);
@@ -98,8 +108,11 @@ const SignupPopup = () => {
   // Listen for popup trigger
   useEffect(() => {
     const onTrigger = (event: Event) => {
-      const detail = (event as CustomEvent<{ force?: boolean }>).detail;
-      openPopup(Boolean(detail?.force));
+      const detail = (event as CustomEvent<PopupTriggerDetail>).detail;
+      openPopup({
+        force: detail?.force,
+        mode: detail?.mode,
+      });
     };
     window.addEventListener("bacaxita:login-popup", onTrigger as EventListener);
     return () => {

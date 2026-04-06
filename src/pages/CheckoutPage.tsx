@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowLeft, Copy, QrCode } from "lucide-react";
+import { AlertCircle, ArrowLeft, Copy } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CheckoutSummary from "@/components/checkout/CheckoutSummary";
@@ -12,7 +12,7 @@ import { API_BASE, joinUrl } from "@/api/client";
 import { formatPrice } from "@/lib/priceFormatter";
 import { notifyAbacaxiError } from "@/lib/abacaxiTI";
 
-const BRAND_ICON = "/assets/branding/logo-headshop.png";
+const BRAND_ICON = "/assets/branding/pineapple-icon.png";
 
 const methodDescriptions: Record<CheckoutMethod, string> = {
   credit: "Voce sera redirecionado para o checkout do Mercado Pago e podera pagar no cartao de credito.",
@@ -39,9 +39,33 @@ type PixPayload = {
   expiresAt?: string | null;
 };
 
+type ApiErrorPayload = {
+  error?: string;
+  message?: string;
+  details?: {
+    error?: string;
+    message?: string;
+    cause?: Array<{ description?: string; code?: string; message?: string }>;
+  } | null;
+} | null;
+
 type CheckoutSnapshot = {
   items: ReturnType<typeof normalizeCartItem>[];
   total: number;
+};
+
+const extractApiErrorMessage = (payload: ApiErrorPayload, fallback: string) => {
+  const causes = Array.isArray(payload?.details?.cause)
+    ? payload.details?.cause
+        .map((item) => String(item?.description || item?.message || item?.code || "").trim())
+        .filter(Boolean)
+    : [];
+
+  return (
+    causes[0] ||
+    String(payload?.details?.message || payload?.details?.error || payload?.message || payload?.error || "").trim() ||
+    fallback
+  );
 };
 
 const CheckoutPage = () => {
@@ -209,10 +233,9 @@ const CheckoutPage = () => {
           }),
         });
 
-        const pixPayload = (await pixResponse.json().catch(() => null)) as PixPayload | { error?: string } | null;
+        const pixPayload = (await pixResponse.json().catch(() => null)) as PixPayload | ApiErrorPayload;
         if (!pixResponse.ok) {
-          const msg = (pixPayload as any)?.error || "Nao foi possivel gerar PIX.";
-          throw new Error(msg);
+          throw new Error(extractApiErrorMessage(pixPayload as ApiErrorPayload, "Nao foi possivel gerar PIX."));
         }
 
         if (!pixPayload?.qrCode || !pixPayload?.qrCodeBase64) {
@@ -301,23 +324,25 @@ const CheckoutPage = () => {
             <Button onClick={() => navigate("/")}>Voltar as compras</Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-            <section className="space-y-5 lg:col-span-3">
+          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <section className="space-y-5">
               <PaymentMethodSelector selected={selectedMethod} onSelect={setSelectedMethod} />
 
-              <div className="rounded-xl border border-border bg-card p-5">
+              <div className="rounded-[24px] border border-border bg-card p-5">
                 <p className="text-sm text-muted-foreground">{methodDescriptions[selectedMethod]}</p>
               </div>
 
               {selectedMethod === "pix" ? (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                <div className="rounded-[24px] border border-amber-500/30 bg-gradient-to-br from-amber-500/14 to-amber-200/10 p-4 sm:p-5">
                   <div className="flex items-start gap-3">
-                    <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-8 w-8 rounded-md object-contain" />
+                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-amber-500/20 bg-white/60">
+                      <img src={BRAND_ICON} alt="Icone Bacaxita" className="h-7 w-7 object-contain" />
+                    </div>
                     <div>
-                      <p className="text-sm font-semibold text-amber-800">
+                      <p className="text-sm font-semibold text-amber-800 sm:text-base">
                         Faltam so alguns passos para finalizar seu pedido.
                       </p>
-                      <p className="mt-1 text-xs text-amber-700">
+                      <p className="mt-1 text-xs leading-5 text-amber-700 sm:text-sm">
                         Gere o QR Code, conclua o pagamento no app do banco e aguarde a confirmacao automatica.
                       </p>
                     </div>
@@ -333,17 +358,22 @@ const CheckoutPage = () => {
               ) : null}
 
               {selectedMethod === "pix" && pixPayment ? (
-                <div className="space-y-4 rounded-xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-2 text-foreground">
-                    <QrCode className="h-5 w-5 text-accent" />
-                    <p className="font-semibold">PIX gerado com sucesso</p>
+                <div className="space-y-4 rounded-[24px] border border-border bg-card p-5">
+                  <div className="flex items-center gap-3 text-foreground">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-accent/20 bg-accent/10">
+                      <img src={BRAND_ICON} alt="PIX Bacaxita" className="h-7 w-7 object-contain" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">PIX gerado com sucesso</p>
+                      <p className="text-xs text-muted-foreground">Use o abacaxi como sinal visual do seu pagamento.</p>
+                    </div>
                   </div>
 
                   <div className="flex flex-col items-center gap-3">
                     <img
                       src={`data:image/png;base64,${pixPayment.qrCodeBase64}`}
                       alt="QR Code PIX"
-                      className="h-56 w-56 rounded-lg border border-border bg-white p-2"
+                      className="h-auto w-full max-w-[260px] rounded-2xl border border-border bg-white p-2 shadow-sm"
                     />
                     <p className="text-sm text-muted-foreground">
                       Valor:{" "}
@@ -363,7 +393,7 @@ const CheckoutPage = () => {
                     ) : null}
                   </div>
 
-                  <div className="rounded-lg border border-border bg-muted/40 p-3">
+                  <div className="rounded-2xl border border-border bg-muted/40 p-3">
                     <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Codigo copia e cola</p>
                     <p className="break-all text-xs text-foreground">{pixPayment.qrCode}</p>
                     <Button
@@ -404,7 +434,7 @@ const CheckoutPage = () => {
               </Button>
             </section>
 
-            <div className="lg:col-span-2">
+            <div>
               <CheckoutSummary items={checkoutItems} total={checkoutTotal} />
             </div>
           </div>

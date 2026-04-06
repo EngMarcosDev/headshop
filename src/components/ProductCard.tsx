@@ -107,7 +107,7 @@ const ProductCard = ({
       )}
 
       <div
-        className="mb-2.5 flex h-[118px] cursor-pointer items-center justify-center overflow-hidden rounded-md bg-muted/30 sm:h-[132px] md:mb-3 md:h-[150px]"
+        className="mb-2.5 flex min-h-[132px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.95),rgba(248,234,193,0.52)_38%,rgba(141,101,57,0.14)_100%)] sm:min-h-[148px] md:mb-3 md:min-h-[170px]"
         onClick={openDetails}
       >
         <div className="relative h-full w-full">
@@ -116,7 +116,7 @@ const ProductCard = ({
             alt={name}
             loading="lazy"
             decoding="async"
-            className={`absolute inset-0 h-full w-full object-cover transition-all duration-300 ${
+            className={`absolute inset-0 h-full w-full object-contain p-2.5 transition-all duration-300 ${
               secondaryImage ? "group-hover:opacity-0" : "group-hover:scale-105"
             }`}
             onError={(event) => {
@@ -129,7 +129,7 @@ const ProductCard = ({
               alt={`${name} imagem 2`}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-contain p-2.5 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105"
               onError={(event) => {
                 event.currentTarget.src = primaryImage || "/placeholder.svg";
               }}

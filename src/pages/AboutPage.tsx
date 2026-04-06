@@ -48,7 +48,7 @@ const AboutPage = () => {
               <img
                 src="/assets/branding/Quadrinhos.png"
                 alt="Abacaxi em quadrinhos"
-                className="h-full w-full rounded-lg object-cover"
+                className="aspect-[4/3] h-full w-full rounded-lg object-contain bg-white/40 p-2"
               />
               <p className="mt-2 text-xs text-muted-foreground">Abacaxi em quadrinhos oficial da tripulacao Bacaxita.</p>
             </div>
