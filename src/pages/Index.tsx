@@ -11,21 +11,17 @@ const Index = () => {
   const bannersQuery = useQuery({
     queryKey: ["products", "news-banners"],
     queryFn: fetchNewsBanners,
-    staleTime: 2000,
+    staleTime: 300000,
     retry: 1,
-    refetchOnWindowFocus: true,
-    refetchInterval: 3000,
-    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: false,
   });
 
   const popularQuery = useQuery({
     queryKey: ["products", "popular"],
     queryFn: fetchPopularProducts,
-    staleTime: 2000,
+    staleTime: 300000,
     retry: 1,
-    refetchOnWindowFocus: true,
-    refetchInterval: 3000,
-    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: false,
   });
 
   return (

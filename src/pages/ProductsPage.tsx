@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
+import PineappleLoader from "@/components/PineappleLoader";
 import { fetchAllProducts } from "@/api/products";
 import { fetchStoreCategories } from "@/api/categories";
 import { HEADSHOP_CATEGORIES, buildCategoryFromApi } from "@/lib/categoryCatalog";
@@ -123,7 +124,7 @@ const ProductsPage = () => {
         </div>
 
         {productsQuery.isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando produtos...</p>
+          <PineappleLoader label="Carregando produtos" compact />
         ) : productsQuery.isError ? (
           <p className="text-sm text-muted-foreground">Nao foi possivel carregar os produtos.</p>
         ) : filteredProducts.length === 0 ? (

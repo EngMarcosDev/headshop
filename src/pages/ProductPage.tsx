@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Minus, Plus, Search, ShoppingBag } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PineappleLoader from "@/components/PineappleLoader";
 import { fetchProductById } from "@/api/products";
 import { fetchStoreCategories } from "@/api/categories";
 import { useCart } from "@/contexts/CartContext";
@@ -117,7 +118,7 @@ const ProductPage = () => {
         </button>
 
         {productQuery.isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando produto...</p>
+          <PineappleLoader label="Carregando produto" compact />
         ) : !product ? (
           <p className="text-sm text-muted-foreground">Produto nao encontrado.</p>
         ) : (

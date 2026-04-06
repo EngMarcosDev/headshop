@@ -16,7 +16,7 @@ let googleScriptPromise: Promise<void> | null = null;
 const loadGoogleIdentityScript = () => {
   if (googleScriptPromise) return googleScriptPromise;
   googleScriptPromise = new Promise<void>((resolve, reject) => {
-    if (window.google?.accounts?.id) {
+    if (window.google?.accounts?.oauth2 || window.google?.accounts?.id) {
       resolve();
       return;
     }
@@ -228,60 +228,95 @@ const SignupPopup = () => {
     }
   };
 
+  const handleResendCode = async () => {
+    const email = normalizeEmail(verifyEmailAddr);
+    if (!email) {
+      setError({ message: "Informe o e-mail para reenviar o codigo" });
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await resendVerification(email);
+      if (!result.ok) {
+        setError({ message: result.error || "Nao foi possivel reenviar o codigo" });
+        return;
+      }
+
+      setError(
+        result.verificationCode
+          ? { message: `Codigo reenviado: ${result.verificationCode}` }
+          : { message: "Codigo reenviado para seu e-mail" }
+      );
+    } catch {
+      setError({ message: "Erro ao reenviar o codigo" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAccessToken = async (accessToken: string) => {
+    const result = await googleLogin({ accessToken });
+    if (result.ok) {
+      setIsOpen(false);
+      return;
+    }
+
+    if (result.needsRegistration) {
+      const fullName = String(result.name || "").trim();
+      const [firstName = "", ...lastNameParts] = fullName.split(/\s+/);
+      setRegFirstName(firstName);
+      setRegLastName(lastNameParts.join(" "));
+      setRegEmail(result.email || "");
+      setMode("register");
+      setError({ message: "Complete seu cadastro para continuar" });
+      return;
+    }
+
+    setError({ message: result.error || "Erro ao entrar com Google" });
+  };
+
   const handleGoogleLogin = async () => {
     setError(null);
     if (!googleClientId) {
-      setError({ message: "Google não configurado" });
+      setError({ message: "Google nao configurado" });
       return;
     }
 
     setLoading(true);
     try {
       await loadGoogleIdentityScript();
-      const googleApi = window.google?.accounts?.id;
-      if (!googleApi) {
-        setError({ message: "Google indisponível" });
+      const tokenClientFactory = window.google?.accounts?.oauth2?.initTokenClient;
+      if (!tokenClientFactory) {
+        setError({ message: "Google indisponivel" });
+        setLoading(false);
         return;
       }
 
-      googleApi.initialize({ client_id: googleClientId });
-      googleApi.prompt();
-
-      // Setup callback
-      googleApi.renderButton(document.createElement("div"), {
-        callback: async (response: { credential?: string }) => {
+      const tokenClient = tokenClientFactory({
+        client_id: googleClientId,
+        scope: "openid email profile",
+        callback: async (response: { access_token?: string; error?: string; error_description?: string }) => {
           try {
-            if (!response?.credential) {
-              setError({ message: "Falha ao autenticar" });
+            if (response?.error || !response?.access_token) {
+              setError({ message: response?.error_description || "Falha ao autenticar com Google" });
               return;
             }
 
-            const result = await googleLogin(response.credential);
-            if (result.ok) {
-              setIsOpen(false);
-              return;
-            }
-
-            if (result.needsRegistration) {
-              const fullName = String(result.name || "").trim();
-              const [firstName = "", ...lastNameParts] = fullName.split(/\s+/);
-      setRegFirstName(firstName);
-              setRegLastName(lastNameParts.join(" "));
-              setRegEmail(result.email || "");
-              setMode("register");
-              setError({ message: "Complete seu cadastro para continuar" });
-              return;
-            }
-
-            setError({ message: result.error || "Erro ao entrar com Google" });
+            await handleGoogleAccessToken(response.access_token);
           } finally {
             setLoading(false);
           }
         },
+        error_callback: () => {
+          setError({ message: "Nao foi possivel abrir o login do Google" });
+          setLoading(false);
+        },
       });
 
-      setTimeout(() => setLoading(false), 5000);
-    } catch (err) {
+      tokenClient.requestAccessToken({ prompt: "consent" });
+    } catch {
       setError({ message: "Erro ao carregar Google" });
       setLoading(false);
     }
@@ -390,6 +425,16 @@ const SignupPopup = () => {
 
           {mode === "register" && (
             <form onSubmit={handleRegisterSubmit} className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full text-sm"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+              >
+                {loading ? "Conectando..." : "Cadastrar com Google"}
+              </Button>
+
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   placeholder="Nome"
@@ -496,9 +541,23 @@ const SignupPopup = () => {
               <button
                 type="button"
                 className="w-full text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setMode("login");
+                  setVerifyCode("");
+                  setError(null);
+                }}
                 disabled={loading}
               >
                 Voltar
+              </button>
+
+              <button
+                type="button"
+                className="w-full text-xs text-muted-foreground hover:text-foreground"
+                onClick={handleResendCode}
+                disabled={loading}
+              >
+                Reenviar codigo
               </button>
             </form>
           )}
@@ -509,4 +568,3 @@ const SignupPopup = () => {
 };
 
 export default SignupPopup;
-
