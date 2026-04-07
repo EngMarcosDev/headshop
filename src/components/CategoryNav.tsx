@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStoreCategories } from "@/api/categories";
-import { HEADSHOP_CATEGORIES, buildCategoryFromApi } from "@/lib/categoryCatalog";
+import { HEADSHOP_CATEGORIES, HOME_CATEGORY_LIMIT, buildCategoryFromApi } from "@/lib/categoryCatalog";
 
 const CategoryNav = () => {
   const categoriesQuery = useQuery({
@@ -16,9 +16,12 @@ const CategoryNav = () => {
       .map((entry) => buildCategoryFromApi(entry))
       .filter((category) => category.slug !== "banners");
 
-    return fromApi.length > 0
-      ? fromApi
-      : HEADSHOP_CATEGORIES.filter((category) => category.slug !== "banners");
+    const ordered =
+      fromApi.length > 0
+        ? fromApi
+        : HEADSHOP_CATEGORIES.filter((category) => category.slug !== "banners");
+
+    return ordered.slice(0, HOME_CATEGORY_LIMIT);
   }, [categoriesQuery.data]);
 
   return (

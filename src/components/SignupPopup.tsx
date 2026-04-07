@@ -13,6 +13,38 @@ declare global {
 
 let googleScriptPromise: Promise<void> | null = null;
 
+const GoogleIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+    <path
+      fill="#EA4335"
+      d="M12 10.2v3.9h5.5c-.23 1.25-.95 2.31-2.02 3.02l3.27 2.53c1.9-1.75 2.99-4.32 2.99-7.36 0-.7-.06-1.38-.18-2.04H12z"
+    />
+    <path
+      fill="#4285F4"
+      d="M12 22c2.7 0 4.97-.9 6.63-2.44l-3.27-2.53c-.9.6-2.06.96-3.36.96-2.58 0-4.76-1.74-5.54-4.08H3.1v2.6A9.99 9.99 0 0 0 12 22z"
+    />
+    <path
+      fill="#FBBC05"
+      d="M6.46 13.91A5.95 5.95 0 0 1 6.15 12c0-.66.11-1.29.31-1.91V7.49H3.1A9.96 9.96 0 0 0 2 12c0 1.61.38 3.13 1.1 4.51l3.36-2.6z"
+    />
+    <path
+      fill="#34A853"
+      d="M12 6.01c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 3.04 14.7 2 12 2A9.99 9.99 0 0 0 3.1 7.49l3.36 2.6C7.24 7.75 9.42 6.01 12 6.01z"
+    />
+  </svg>
+);
+
+const GoogleWordmark = () => (
+  <span className="inline-flex items-center gap-[1px] font-semibold">
+    <span className="text-[#4285F4]">G</span>
+    <span className="text-[#EA4335]">o</span>
+    <span className="text-[#FBBC05]">o</span>
+    <span className="text-[#4285F4]">g</span>
+    <span className="text-[#34A853]">l</span>
+    <span className="text-[#EA4335]">e</span>
+  </span>
+);
+
 const loadGoogleIdentityScript = () => {
   if (googleScriptPromise) return googleScriptPromise;
   googleScriptPromise = new Promise<void>((resolve, reject) => {
@@ -344,10 +376,10 @@ const SignupPopup = () => {
         onClick={() => setIsOpen(false)}
       />
 
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-sm bg-card rounded-lg border border-border z-50 shadow-xl overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-rasta-green via-rasta-yellow to-rasta-red" />
+      <div className="fixed top-1/2 left-1/2 z-50 w-[95%] max-w-[430px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border border-border/80 bg-card shadow-[0_32px_80px_-34px_rgba(18,14,10,0.78)]">
+        <div className="h-1.5 bg-gradient-to-r from-rasta-green via-rasta-yellow to-rasta-red" />
 
-        <div className="p-6">
+        <div className="bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_42%)] p-6">
           <button
             onClick={() => setIsOpen(false)}
             className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
@@ -359,16 +391,9 @@ const SignupPopup = () => {
             {mode === "login" ? "Efetue seu Login" : mode === "register" ? "Efetue seu Cadastro" : "Verificar E-mail"}
           </h2>
 
-          {mode === "login" && (
-            <div className="bg-muted rounded p-2 mb-4 text-xs text-foreground">
-              <p>Me parece que você é novo aqui!</p>
-              <p className="text-muted-foreground mt-1">Cadastre-se e receba 5% de desconto na primeira compra.</p>
-            </div>
-          )}
-
           {mode === "register" && (
-            <div className="bg-muted rounded p-2 mb-4 text-xs text-foreground">
-              <p>É realmente uma maravilha ter você conosco.</p>
+            <div className="mb-4 rounded-2xl border border-border/70 bg-muted/40 px-3 py-2 text-xs text-foreground">
+              <p>Crie sua conta e acompanhe seus pedidos com mais facilidade.</p>
             </div>
           )}
 
@@ -384,11 +409,20 @@ const SignupPopup = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full text-sm"
+                className="h-11 w-full justify-center gap-3 rounded-2xl border-[#dadce0] bg-white text-sm text-slate-700 shadow-sm transition-all hover:border-[#c6dafc] hover:bg-[#f8fbff] hover:text-slate-900"
                 onClick={handleGoogleLogin}
                 disabled={loading}
               >
-                {loading ? "Conectando..." : "Entrar com Google"}
+                <GoogleIcon />
+                <span>
+                  {loading ? (
+                    "Conectando..."
+                  ) : (
+                    <>
+                      Entrar com <GoogleWordmark />
+                    </>
+                  )}
+                </span>
               </Button>
 
               <Input
@@ -441,11 +475,20 @@ const SignupPopup = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full text-sm"
+                className="h-11 w-full justify-center gap-3 rounded-2xl border-[#dadce0] bg-white text-sm text-slate-700 shadow-sm transition-all hover:border-[#c6dafc] hover:bg-[#f8fbff] hover:text-slate-900"
                 onClick={handleGoogleLogin}
                 disabled={loading}
               >
-                {loading ? "Conectando..." : "Cadastrar com Google"}
+                <GoogleIcon />
+                <span>
+                  {loading ? (
+                    "Conectando..."
+                  ) : (
+                    <>
+                      Cadastrar com <GoogleWordmark />
+                    </>
+                  )}
+                </span>
               </Button>
 
               <div className="grid grid-cols-2 gap-2">

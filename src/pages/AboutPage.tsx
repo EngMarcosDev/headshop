@@ -46,9 +46,9 @@ const AboutPage = () => {
 
             <div className="rounded-xl border border-border bg-muted/20 p-3">
               <img
-                src="/assets/branding/Quadrinhos.png"
+                src="/assets/branding/Quadrinhos.jpeg"
                 alt="Abacaxi em quadrinhos"
-                className="aspect-[4/3] h-full w-full rounded-lg object-contain bg-white/40 p-2"
+                className="aspect-[4/3] h-full w-full rounded-lg object-cover bg-white/40"
               />
               <p className="mt-2 text-xs text-muted-foreground">Abacaxi em quadrinhos oficial da tripulacao Bacaxita.</p>
             </div>

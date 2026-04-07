@@ -45,11 +45,9 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
 
   if (isLoading) {
     return (
-      <section className="w-full pt-6 md:pt-8">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="overflow-hidden rounded-[28px] border border-border bg-muted/60 animate-pulse">
-            <div className="min-h-[340px] sm:min-h-[380px] md:min-h-[440px] w-full" />
-          </div>
+      <section className="news-banner">
+        <div className="overflow-hidden border-y border-border/60 bg-muted/60 animate-pulse">
+          <div className="min-h-[260px] w-full sm:min-h-[320px] md:min-h-[420px]" />
         </div>
       </section>
     );
@@ -60,89 +58,60 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
   }
 
   return (
-    <section className="w-full pt-6 md:pt-8">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-sm font-display font-bold uppercase tracking-[0.3em] text-foreground sm:text-base md:text-lg">
-              Novidades
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Vitrine responsiva, sem distorcer o banner e com leitura mais bonita em qualquer tela.
-            </p>
-          </div>
-          {slides.length > 1 ? (
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {String(index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
-            </p>
-          ) : null}
+    <section className="news-banner">
+      <div className="relative overflow-hidden border-y border-border/70 bg-card shadow-[0_24px_70px_-42px_rgba(55,32,12,0.55)]">
+        <div
+          className="flex transition-transform duration-700 ease-out"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {slides.map((slide) => (
+            <article key={slide.id} className="relative min-h-[260px] w-full flex-shrink-0 sm:min-h-[320px] md:min-h-[420px] lg:min-h-[500px]">
+              <img
+                src={slide.image}
+                alt={slide.name}
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(16,13,10,0.82)_0%,rgba(16,13,10,0.54)_34%,rgba(16,13,10,0.14)_62%,rgba(16,13,10,0.34)_100%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,193,64,0.18),transparent_38%)]" />
+
+              <div className="relative z-10 flex h-full items-end">
+                <div className="w-full px-4 py-5 sm:px-6 sm:py-6 md:px-10 md:py-8 lg:px-16 lg:py-10">
+                  <div className="max-w-2xl">
+                    <span className="inline-flex w-fit items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/95 backdrop-blur-sm">
+                      Novidade Bacaxita
+                    </span>
+                    <h2 className="mt-4 font-display text-2xl font-bold leading-tight text-white drop-shadow-[0_8px_22px_rgba(0,0,0,0.4)] sm:text-3xl lg:text-[3.05rem]">
+                      {slide.name}
+                    </h2>
+                    {slide.showPrice && slide.price > 0 ? (
+                      <div className="mt-5 inline-flex w-fit items-center rounded-2xl border border-white/10 bg-white/95 px-4 py-2 text-sm font-semibold text-primary shadow-xl">
+                        {formatCurrency(slide.price)}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
 
-        <div className="overflow-hidden rounded-[30px] border border-border/70 bg-card shadow-[0_24px_70px_-45px_rgba(55,32,12,0.55)]">
-          <div
-            className="flex transition-transform duration-700 ease-out"
-            style={{ transform: `translateX(-${index * 100}%)` }}
-          >
-            {slides.map((slide) => (
-              <article
-                key={slide.id}
-                className="relative grid w-full flex-shrink-0 grid-cols-1 md:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.85fr)]"
-              >
-                <div className="order-2 flex flex-col justify-end p-4 sm:p-6 md:order-1 md:p-8 lg:p-10">
-                  <span className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
-                    Destaque Bacaxita
-                  </span>
-                  <h3 className="mt-4 font-display text-2xl font-bold leading-tight text-foreground sm:text-3xl lg:text-[2.4rem]">
-                    {slide.name}
-                  </h3>
-                  <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-                    O banner agora respeita o formato da arte, ganha apoio visual no fundo e continua elegante no celular.
-                  </p>
-                  {slide.showPrice && slide.price > 0 ? (
-                    <div className="mt-5 inline-flex w-fit items-center rounded-2xl bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-lg">
-                      {formatCurrency(slide.price)}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="relative order-1 min-h-[250px] overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(255,235,190,0.45)_40%,rgba(151,109,58,0.12)_100%)] md:order-2 md:min-h-[430px]">
-                  <img
-                    src={slide.image}
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 h-full w-full scale-110 object-cover blur-3xl opacity-35"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div className="absolute inset-x-4 bottom-0 top-4 rounded-t-[26px] bg-white/45 blur-3xl md:inset-6" />
-                  <img
-                    src={slide.image}
-                    alt={slide.name}
-                    className="relative z-10 h-full w-full object-contain p-4 sm:p-6 md:p-8"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        {slides.length > 1 && (
-          <div className="mt-4 flex items-center justify-center gap-2">
+        {slides.length > 1 ? (
+          <div className="absolute inset-x-0 bottom-4 z-20 flex items-center justify-center gap-2 px-4">
             {slides.map((slide, dotIndex) => (
               <button
                 key={`dot-${slide.id}`}
                 type="button"
                 onClick={() => setIndex(dotIndex)}
-                className={`h-2.5 rounded-full transition-all ${
-                  dotIndex === index ? "w-10 bg-accent shadow-sm" : "w-2.5 bg-border"
+                className={`h-2.5 rounded-full border border-white/20 transition-all ${
+                  dotIndex === index ? "w-10 bg-white shadow-sm" : "w-2.5 bg-white/35 backdrop-blur-sm"
                 }`}
                 aria-label={`Exibir banner ${dotIndex + 1}`}
               />
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   );

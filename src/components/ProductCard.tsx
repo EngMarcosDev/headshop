@@ -116,7 +116,7 @@ const ProductCard = ({
             alt={name}
             loading="lazy"
             decoding="async"
-            className={`absolute inset-0 h-full w-full object-contain p-2.5 transition-all duration-300 ${
+            className={`absolute inset-0 h-full w-full object-cover transition-all duration-300 ${
               secondaryImage ? "group-hover:opacity-0" : "group-hover:scale-105"
             }`}
             onError={(event) => {
@@ -129,7 +129,7 @@ const ProductCard = ({
               alt={`${name} imagem 2`}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-contain p-2.5 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105"
               onError={(event) => {
                 event.currentTarget.src = primaryImage || "/placeholder.svg";
               }}

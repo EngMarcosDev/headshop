@@ -8,6 +8,8 @@ export interface HeadshopCategory {
   icon: LucideIcon;
 }
 
+export const HOME_CATEGORY_LIMIT = 6;
+
 export const HEADSHOP_CATEGORIES: HeadshopCategory[] = [
   { slug: "sedas", name: "Sedas", href: "/categoria/sedas", icon: Cigarette },
   { slug: "piteira", name: "Piteiras", href: "/categoria/piteira", icon: Filter },
