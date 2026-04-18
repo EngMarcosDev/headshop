@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, useState } from "react";
-import { Eye, EyeOff, X, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "./ui/button";
@@ -66,6 +66,7 @@ const loadGoogleIdentityScript = () => {
 interface FormError {
   field?: string;
   message: string;
+  type?: "success" | "error";
 }
 
 type PopupMode = "login" | "register" | "verify";
@@ -231,11 +232,7 @@ const SignupPopup = () => {
 
       setVerifyEmailAddr(email);
       setMode("verify");
-      setError(
-        result.verificationCode 
-          ? { message: `Código: ${result.verificationCode}` } 
-          : { message: "Código enviado para seu e-mail" }
-      );
+      setError({ message: "Código enviado para seu e-mail", type: "success" });
     } catch (err) {
       setError({ message: "Erro ao criar conta" });
     } finally {
@@ -260,7 +257,7 @@ const SignupPopup = () => {
         return;
       }
 
-      setError({ message: "E-mail verificado! Faça login para continuar" });
+      setError({ message: "E-mail verificado! Faça login para continuar", type: "success" });
       setTimeout(() => {
         setMode("login");
         setLoginEmail(verifyEmailAddr);
@@ -289,11 +286,7 @@ const SignupPopup = () => {
         return;
       }
 
-      setError(
-        result.verificationCode
-          ? { message: `Codigo reenviado: ${result.verificationCode}` }
-          : { message: "Codigo reenviado para seu e-mail" }
-      );
+      setError({ message: "Codigo reenviado para seu e-mail", type: "success" });
     } catch {
       setError({ message: "Erro ao reenviar o codigo" });
     } finally {
@@ -398,10 +391,17 @@ const SignupPopup = () => {
           )}
 
           {error && (
-            <div className="mb-3 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-600 flex gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>{error.message}</span>
-            </div>
+            error.type === "success" ? (
+              <div className="mb-3 p-2 bg-green-500/10 border border-green-500/20 rounded text-xs text-green-700 flex gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{error.message}</span>
+              </div>
+            ) : (
+              <div className="mb-3 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-600 flex gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{error.message}</span>
+              </div>
+            )
           )}
 
           {mode === "login" && (

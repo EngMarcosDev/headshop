@@ -22,7 +22,10 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
         .map((product) => ({
           id: product.id,
           name: product.name,
-          image: product.bannerImage || product.image,
+          // Desktop: bannerImage (paisagem larga). Mobile: image (recortada/vertical).
+          // Se mobile nao tiver imagem separada, usa a mesma do desktop.
+          desktopImage: product.bannerImage || product.image,
+          mobileImage: (product.image && product.image !== product.bannerImage) ? product.image : (product.bannerImage || product.image),
           price: Number(product.price || 0),
           showPrice: product.showBannerPrice === true,
         }))
@@ -66,36 +69,35 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
         >
           {slides.map((slide) => (
             <article key={slide.id} className="relative min-h-[260px] w-full flex-shrink-0 sm:min-h-[320px] md:min-h-[420px] lg:min-h-[500px]">
+              {/* Desktop: imagem larga (≥ md) */}
               <img
-                src={slide.image}
+                src={slide.desktopImage}
                 alt={slide.name}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover hidden md:block"
                 loading="lazy"
                 decoding="async"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(16,13,10,0.82)_0%,rgba(16,13,10,0.54)_34%,rgba(16,13,10,0.14)_62%,rgba(16,13,10,0.34)_100%)]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,193,64,0.18),transparent_38%)]" />
+              {/* Mobile: imagem recortada (< md) */}
+              <img
+                src={slide.mobileImage}
+                alt={slide.name}
+                className="absolute inset-0 h-full w-full object-cover block md:hidden"
+                loading="lazy"
+                decoding="async"
+              />
 
-              <div className="relative z-10 flex h-full items-end">
-                <div className="w-full px-4 py-5 sm:px-6 sm:py-6 md:px-10 md:py-8 lg:px-16 lg:py-10">
-                  <div className="max-w-2xl">
-                    <span className="inline-flex w-fit items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/95 backdrop-blur-sm">
-                      Novidade Bacaxita
-                    </span>
-                    <h2 className="mt-4 font-display text-2xl font-bold leading-tight text-white drop-shadow-[0_8px_22px_rgba(0,0,0,0.4)] sm:text-3xl lg:text-[3.05rem]">
-                      {slide.name}
-                    </h2>
+              {slide.showPrice && slide.price > 0 ? (
+                <div className="relative z-10 flex h-full items-end">
+                  <div className="w-full px-4 py-5 sm:px-6 sm:py-6 md:px-10 md:py-8 lg:px-16 lg:py-10">
                     {/* Preco no banner: bg branco e HARD-CODED, entao o texto
                         precisa de cor fixa (nao usar text-primary pois ele
                         vira quase branco no modo noturno -> branco em branco). */}
-                    {slide.showPrice && slide.price > 0 ? (
-                      <div className="mt-5 inline-flex w-fit items-center rounded-2xl border border-black/5 bg-white/95 px-4 py-2 text-sm font-semibold text-neutral-900 shadow-xl">
-                        {formatCurrency(slide.price)}
-                      </div>
-                    ) : null}
+                    <div className="inline-flex w-fit items-center rounded-2xl border border-black/5 bg-white/95 px-4 py-2 text-sm font-semibold text-neutral-900 shadow-xl">
+                      {formatCurrency(slide.price)}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : null}
             </article>
           ))}
         </div>

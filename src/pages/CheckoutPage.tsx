@@ -160,7 +160,7 @@ const CheckoutPage = () => {
         const status = String(payload.status || "").toUpperCase();
         const paymentStatus = String(payload.paymentStatus || "").toUpperCase();
 
-        if (PAID_ORDER_STATUSES.has(status) || paymentStatus === "APPROVED" || payload.paidAt) {
+        if (PAID_ORDER_STATUSES.has(status) || PAID_ORDER_STATUSES.has(paymentStatus) || paymentStatus === "APPROVED" || paymentStatus === "PAID" || payload.paidAt) {
           setPaidOrder({ id: Number(payload.id ?? pixPayment.orderId), number: payload.orderNumber });
           return;
         }

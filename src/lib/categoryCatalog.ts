@@ -6,6 +6,7 @@ export interface HeadshopCategory {
   name: string;
   href: string;
   icon: LucideIcon;
+  image?: string | null;
 }
 
 export const HOME_CATEGORY_LIMIT = 6;
@@ -71,12 +72,13 @@ export const getCategoryIcon = (slug: string): LucideIcon => {
   return iconMap[normalized] || Sparkles;
 };
 
-export const buildCategoryFromApi = (entry: { slug: string; name: string }): HeadshopCategory => {
+export const buildCategoryFromApi = (entry: { slug: string; name: string; image?: string | null }): HeadshopCategory => {
   const slug = normalizeCategorySlug(entry.slug);
   return {
     slug,
     name: entry.name || slug,
     href: `/categoria/${slug}`,
     icon: getCategoryIcon(slug),
+    image: entry.image || null,
   };
 };
