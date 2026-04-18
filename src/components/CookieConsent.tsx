@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 
 type CookieMode = "all" | "required";
@@ -18,6 +18,11 @@ const dispatchCookieChoiceEvent = (mode: CookieMode) => {
   );
 };
 
+// Contrast rule (user request): button text must always be legible against
+// its own background. Green bg -> white text; white bg -> black text.
+// Using SOLID colors (no /0.xx alpha) so content behind the popup never bleeds
+// through and muddles contrast, which was the "botao bugado com transparencia"
+// the user reported.
 export default function CookieConsent() {
   const [open, setOpen] = useState(false);
   const [hasSavedChoice, setHasSavedChoice] = useState(false);
@@ -50,11 +55,11 @@ export default function CookieConsent() {
   return (
     <>
       {launcherVisible && (
-        <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full border border-white/30 bg-[hsl(var(--header))/0.86] px-2 py-1.5 text-white shadow-lg backdrop-blur-xl">
+        <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900 px-2 py-1.5 shadow-lg">
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
-            className="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/95 transition hover:bg-white/15"
+            className="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-neutral-700"
           >
             Preferencias
           </button>
@@ -66,7 +71,7 @@ export default function CookieConsent() {
               setLauncherHidden(true);
               setOpen(false);
             }}
-            className="rounded-full p-1 text-white/65 transition hover:bg-white/15 hover:text-white"
+            className="rounded-full p-1 text-white/80 transition hover:bg-neutral-700 hover:text-white"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -74,37 +79,39 @@ export default function CookieConsent() {
       )}
 
       {open && (
-        <section className="fixed bottom-16 left-4 right-4 z-50 w-auto max-w-sm overflow-hidden rounded-2xl border border-white/30 bg-[hsl(var(--header))/0.9] text-white shadow-2xl backdrop-blur-2xl sm:right-auto">
+        <section className="fixed bottom-16 left-4 right-4 z-50 w-auto max-w-sm overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-900 text-white shadow-2xl sm:right-auto">
           <div className="rasta-stripe" />
 
           <div className="p-4">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-white">Cookies no HeadShop</h3>
-            <p className="mt-2 text-[12px] text-white/75">
+            <p className="mt-2 text-[12px] text-neutral-200">
               Escolha o nivel de privacidade para esta sessao.
             </p>
-            <p className="mt-2 text-[11px] text-white/70">
+            <p className="mt-2 text-[11px] text-neutral-300">
               Ler cookies: usamos cookies necessarios para login, sacolinha e finalizacao de pedido.
             </p>
 
             <div className="mt-4 grid grid-cols-1 gap-2">
+              {/* Fundo verde -> texto branco */}
               <button
                 type="button"
                 onClick={() => saveChoice("all")}
-                className="rounded-lg border border-emerald-700/20 bg-emerald-600/90 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-emerald-500"
+                className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-emerald-500"
               >
                 Permitir Todos
               </button>
+              {/* Fundo branco -> texto preto */}
               <button
                 type="button"
                 onClick={() => saveChoice("required")}
-                className="rounded-lg border border-white/30 bg-white/15 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-white/25"
+                className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-900 transition hover:bg-neutral-100"
               >
                 Somente Necessarios
               </button>
             </div>
 
             {hasSavedChoice && (
-              <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-white/65">
+              <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-neutral-300">
                 Sua escolha pode ser alterada a qualquer momento.
               </p>
             )}

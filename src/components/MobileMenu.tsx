@@ -87,7 +87,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                 onClick={() => selectTheme("light")}
                 className={`rounded-full p-1.5 transition ${
                   theme === "light"
-                    ? "bg-rasta-yellow text-primary shadow"
+                    ? "bg-rasta-yellow text-neutral-900 shadow"
                     : "text-header-foreground/80 hover:bg-white/10 hover:text-white"
                 }`}
               >

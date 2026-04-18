@@ -1,6 +1,10 @@
-import { CreditCard, FileText, Landmark, Smartphone } from "lucide-react";
+import { CreditCard, Landmark, Smartphone } from "lucide-react";
 import type { ElementType } from "react";
 
+// Boleto foi retirado a pedido do usuario - deixamos apenas PIX, debito e
+// credito (os que ja estao validados no Mercado Pago). O type mantem
+// "boleto" como opcao do lado do servidor por compat, mas a UI nao oferece
+// mais essa escolha.
 export type CheckoutMethod = "credit" | "debit" | "pix" | "boleto";
 
 interface PaymentMethodSelectorProps {
@@ -9,20 +13,19 @@ interface PaymentMethodSelectorProps {
 }
 
 const methods: Array<{
-  id: CheckoutMethod;
+  id: Exclude<CheckoutMethod, "boleto">;
   label: string;
   description: string;
   icon: ElementType;
 }> = [
+  { id: "pix", label: "PIX", description: "QR Code gerado nesta tela", icon: Smartphone },
   { id: "credit", label: "Credito", description: "Parcelamento no checkout MP", icon: CreditCard },
   { id: "debit", label: "Debito", description: "Pagamento online", icon: Landmark },
-  { id: "pix", label: "PIX", description: "QR Code gerado nesta tela", icon: Smartphone },
-  { id: "boleto", label: "Boleto", description: "Pagamento em ate 3 dias", icon: FileText },
 ];
 
 const PaymentMethodSelector = ({ selected, onSelect }: PaymentMethodSelectorProps) => {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {methods.map((method) => {
         const isActive = selected === method.id;
         return (

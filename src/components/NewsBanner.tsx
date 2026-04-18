@@ -85,8 +85,11 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
                     <h2 className="mt-4 font-display text-2xl font-bold leading-tight text-white drop-shadow-[0_8px_22px_rgba(0,0,0,0.4)] sm:text-3xl lg:text-[3.05rem]">
                       {slide.name}
                     </h2>
+                    {/* Preco no banner: bg branco e HARD-CODED, entao o texto
+                        precisa de cor fixa (nao usar text-primary pois ele
+                        vira quase branco no modo noturno -> branco em branco). */}
                     {slide.showPrice && slide.price > 0 ? (
-                      <div className="mt-5 inline-flex w-fit items-center rounded-2xl border border-white/10 bg-white/95 px-4 py-2 text-sm font-semibold text-primary shadow-xl">
+                      <div className="mt-5 inline-flex w-fit items-center rounded-2xl border border-black/5 bg-white/95 px-4 py-2 text-sm font-semibold text-neutral-900 shadow-xl">
                         {formatCurrency(slide.price)}
                       </div>
                     ) : null}

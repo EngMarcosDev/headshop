@@ -1,9 +1,9 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import SignupPopup from "@/components/SignupPopup";
@@ -13,6 +13,16 @@ import SitePopupManager from "@/components/SitePopupManager";
 import AbacaxiTI from "@/components/AbacaxiTI";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import PineappleLoader from "@/components/PineappleLoader";
+
+// Rule from the user: popups of notices / preferences / admin alerts appear
+// ONLY on the home route. Navigating to a category/product/checkout must be
+// distraction-free. The single exception (per user instruction) is the
+// WhatsApp / social floating button, which must appear everywhere.
+const HomeOnly = ({ children }: { children: ReactNode }) => {
+  const location = useLocation();
+  if (location.pathname !== "/") return null;
+  return <>{children}</>;
+};
 
 const Index = lazy(() => import("./pages/Index"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
@@ -50,12 +60,18 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            {/* Stays on every route */}
             <AbacaxiTI />
-            <SignupPopup />
             <CartSidebar />
-            <CookieConsent />
             <WhatsAppFloat />
-            <SitePopupManager />
+
+            {/* Home-only popups (signup / cookies / admin-managed popups) */}
+            <HomeOnly>
+              <SignupPopup />
+              <CookieConsent />
+              <SitePopupManager />
+            </HomeOnly>
+
             <Suspense fallback={<PineappleLoader fullScreen label="Carregando vitrine" />}>
               <Routes>
                 <Route path="/" element={<Index />} />

@@ -30,62 +30,174 @@ type TouchGestureState =
       startOffset: { x: number; y: number };
     };
 
+// IMPORTANT: React synthetic onWheel / onTouchMove listeners are passive by
+// default (React 17+). That means event.preventDefault() inside them is
+// ignored, and the browser keeps doing its own pinch-zoom/scroll alongside
+// our handlers -- that was the "zoom travando" the user reported.
+// Fix: register wheel/touchmove as NATIVE listeners with { passive: false }.
+// We also apply the mobile transform imperatively via refs (no React re-render
+// per frame), and drop the CSS transition while a gesture is active.
 const ProductImageViewer = ({ image, alt }: ProductImageViewerProps) => {
   const frameRef = useRef<HTMLDivElement | null>(null);
-  const touchGestureRef = useRef<TouchGestureState | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
+  // Hot-path state kept in refs (no rerender per frame)
+  const mobileScaleRef = useRef(1);
+  const mobileOffsetRef = useRef({ x: 0, y: 0 });
+  const touchGestureRef = useRef<TouchGestureState | null>(null);
+  const rafPendingRef = useRef<number | null>(null);
+  const isDesktopInteractiveRef = useRef(false);
+
+  // Low-frequency React state (drives visual chrome -- labels, lupa, etc.)
   const [isDesktopInteractive, setIsDesktopInteractive] = useState(false);
   const [isLensActive, setIsLensActive] = useState(false);
   const [lensPosition, setLensPosition] = useState({ x: 50, y: 50 });
   const [desktopZoom, setDesktopZoom] = useState(2.35);
-  const [mobileScale, setMobileScale] = useState(1);
-  const [mobileOffset, setMobileOffset] = useState({ x: 0, y: 0 });
+  const [mobileScaleDisplay, setMobileScaleDisplay] = useState(1);
+  const [gestureActive, setGestureActive] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+  // Write the current mobile transform directly to the DOM (no React round-trip)
+  const applyMobileTransform = () => {
+    rafPendingRef.current = null;
+    const img = imgRef.current;
+    if (!img) return;
+    const { x, y } = mobileOffsetRef.current;
+    const s = mobileScaleRef.current;
+    img.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${s})`;
+  };
 
-    const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const syncDesktopMode = () => {
-      setIsDesktopInteractive(mediaQuery.matches);
-      if (mediaQuery.matches) {
-        setMobileScale(1);
-        setMobileOffset({ x: 0, y: 0 });
-      } else {
-        setIsLensActive(false);
-      }
-    };
+  const scheduleTransform = () => {
+    if (rafPendingRef.current != null) return;
+    rafPendingRef.current = window.requestAnimationFrame(applyMobileTransform);
+  };
 
-    syncDesktopMode();
-    mediaQuery.addEventListener("change", syncDesktopMode);
-    return () => mediaQuery.removeEventListener("change", syncDesktopMode);
-  }, []);
-
-  useEffect(() => {
-    setIsLensActive(false);
-    setLensPosition({ x: 50, y: 50 });
-    setDesktopZoom(2.35);
-    setMobileScale(1);
-    setMobileOffset({ x: 0, y: 0 });
-    touchGestureRef.current = null;
-  }, [image]);
+  const resetMobileZoom = () => {
+    mobileScaleRef.current = 1;
+    mobileOffsetRef.current = { x: 0, y: 0 };
+    setMobileScaleDisplay(1);
+    applyMobileTransform();
+  };
 
   const limitMobileOffset = (scale: number, nextOffset: { x: number; y: number }) => {
     const rect = frameRef.current?.getBoundingClientRect();
     if (!rect) return nextOffset;
-
     const maxX = Math.max(0, ((scale - 1) * rect.width) / 2);
     const maxY = Math.max(0, ((scale - 1) * rect.height) / 2);
-
     return {
       x: clamp(nextOffset.x, -maxX, maxX),
       y: clamp(nextOffset.y, -maxY, maxY),
     };
   };
 
+  // Detect desktop vs mobile (hover + pointer fine)
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const syncDesktopMode = () => {
+      const isDesktop = mediaQuery.matches;
+      isDesktopInteractiveRef.current = isDesktop;
+      setIsDesktopInteractive(isDesktop);
+      if (isDesktop) {
+        resetMobileZoom();
+      } else {
+        setIsLensActive(false);
+      }
+    };
+    syncDesktopMode();
+    mediaQuery.addEventListener("change", syncDesktopMode);
+    return () => mediaQuery.removeEventListener("change", syncDesktopMode);
+  }, []);
+
+  // Reset everything when image changes
+  useEffect(() => {
+    setIsLensActive(false);
+    setLensPosition({ x: 50, y: 50 });
+    setDesktopZoom(2.35);
+    resetMobileZoom();
+    touchGestureRef.current = null;
+    setGestureActive(false);
+  }, [image]);
+
+  // Native wheel listener (desktop zoom) -- NOT passive so we can prevent
+  // default page scroll.
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const onWheel = (event: WheelEvent) => {
+      if (!isDesktopInteractiveRef.current) return;
+      event.preventDefault();
+      const delta = event.deltaY < 0 ? 0.18 : -0.18;
+      setDesktopZoom((current) =>
+        clamp(Number((current + delta).toFixed(2)), DESKTOP_MIN_ZOOM, DESKTOP_MAX_ZOOM)
+      );
+    };
+    frame.addEventListener("wheel", onWheel, { passive: false });
+    return () => frame.removeEventListener("wheel", onWheel);
+  }, []);
+
+  // Native touchmove listener (mobile pinch/pan) -- NOT passive so we can
+  // prevent the browser's own pinch-zoom, which was fighting with ours.
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const onTouchMove = (event: TouchEvent) => {
+      if (isDesktopInteractiveRef.current) return;
+      const gesture = touchGestureRef.current;
+      if (!gesture) return;
+
+      if (gesture.mode === "pinch" && event.touches.length >= 2) {
+        event.preventDefault();
+        const first = event.touches[0];
+        const second = event.touches[1];
+        const nextDistance = getTouchDistance(first, second);
+        const scaleRatio = nextDistance / Math.max(gesture.startDistance, 1);
+        const nextScale = clamp(
+          Number((gesture.startScale * scaleRatio).toFixed(2)),
+          1,
+          MOBILE_MAX_ZOOM
+        );
+        const nextCenter = {
+          x: (first.clientX + second.clientX) / 2,
+          y: (first.clientY + second.clientY) / 2,
+        };
+        const driftOffset = {
+          x: gesture.startOffset.x + (nextCenter.x - gesture.startCenter.x),
+          y: gesture.startOffset.y + (nextCenter.y - gesture.startCenter.y),
+        };
+
+        mobileScaleRef.current = nextScale;
+        mobileOffsetRef.current = limitMobileOffset(nextScale, driftOffset);
+        scheduleTransform();
+        return;
+      }
+
+      if (gesture.mode === "pan" && event.touches.length === 1) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        const nextOffset = {
+          x: gesture.startOffset.x + (touch.clientX - gesture.startPoint.x),
+          y: gesture.startOffset.y + (touch.clientY - gesture.startPoint.y),
+        };
+        mobileOffsetRef.current = limitMobileOffset(mobileScaleRef.current, nextOffset);
+        scheduleTransform();
+      }
+    };
+    frame.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => frame.removeEventListener("touchmove", onTouchMove);
+  }, []);
+
+  // Cleanup rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafPendingRef.current != null) {
+        window.cancelAnimationFrame(rafPendingRef.current);
+      }
+    };
+  }, []);
+
   const updateLensPosition = (clientX: number, clientY: number) => {
     const rect = frameRef.current?.getBoundingClientRect();
     if (!rect) return;
-
     const x = clamp(((clientX - rect.left) / Math.max(rect.width, 1)) * 100, 0, 100);
     const y = clamp(((clientY - rect.top) / Math.max(rect.height, 1)) * 100, 0, 100);
     setLensPosition({ x, y });
@@ -107,93 +219,48 @@ const ProductImageViewer = ({ image, alt }: ProductImageViewerProps) => {
     setIsLensActive(false);
   };
 
-  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (!isDesktopInteractive) return;
-    event.preventDefault();
-    const delta = event.deltaY < 0 ? 0.18 : -0.18;
-    setDesktopZoom((current) =>
-      clamp(Number((current + delta).toFixed(2)), DESKTOP_MIN_ZOOM, DESKTOP_MAX_ZOOM)
-    );
-  };
-
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     if (isDesktopInteractive) return;
 
     if (event.touches.length >= 2) {
-      const [first, second] = [event.touches[0], event.touches[1]];
+      const first = event.touches[0];
+      const second = event.touches[1];
       const nextCenter = {
         x: (first.clientX + second.clientX) / 2,
         y: (first.clientY + second.clientY) / 2,
       };
-
       touchGestureRef.current = {
         mode: "pinch",
         startDistance: getTouchDistance(first, second),
-        startScale: mobileScale,
-        startOffset: mobileOffset,
+        startScale: mobileScaleRef.current,
+        startOffset: mobileOffsetRef.current,
         startCenter: nextCenter,
       };
+      setGestureActive(true);
       return;
     }
 
-    if (event.touches.length === 1 && mobileScale > 1) {
-      const [touch] = [event.touches[0]];
+    if (event.touches.length === 1 && mobileScaleRef.current > 1) {
+      const touch = event.touches[0];
       touchGestureRef.current = {
         mode: "pan",
         startPoint: { x: touch.clientX, y: touch.clientY },
-        startOffset: mobileOffset,
+        startOffset: mobileOffsetRef.current,
       };
-    }
-  };
-
-  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (isDesktopInteractive) return;
-    const gesture = touchGestureRef.current;
-    if (!gesture) return;
-
-    if (gesture.mode === "pinch" && event.touches.length >= 2) {
-      event.preventDefault();
-      const [first, second] = [event.touches[0], event.touches[1]];
-      const nextDistance = getTouchDistance(first, second);
-      const scaleRatio = nextDistance / Math.max(gesture.startDistance, 1);
-      const nextScale = clamp(
-        Number((gesture.startScale * scaleRatio).toFixed(2)),
-        1,
-        MOBILE_MAX_ZOOM
-      );
-      const nextCenter = {
-        x: (first.clientX + second.clientX) / 2,
-        y: (first.clientY + second.clientY) / 2,
-      };
-      const driftOffset = {
-        x: gesture.startOffset.x + (nextCenter.x - gesture.startCenter.x),
-        y: gesture.startOffset.y + (nextCenter.y - gesture.startCenter.y),
-      };
-
-      setMobileScale(nextScale);
-      setMobileOffset(limitMobileOffset(nextScale, driftOffset));
-      return;
-    }
-
-    if (gesture.mode === "pan" && event.touches.length === 1) {
-      event.preventDefault();
-      const touch = event.touches[0];
-      const nextOffset = {
-        x: gesture.startOffset.x + (touch.clientX - gesture.startPoint.x),
-        y: gesture.startOffset.y + (touch.clientY - gesture.startPoint.y),
-      };
-
-      setMobileOffset(limitMobileOffset(mobileScale, nextOffset));
+      setGestureActive(true);
     }
   };
 
   const handleTouchEnd = () => {
     if (isDesktopInteractive) return;
-    if (mobileScale <= 1.02) {
-      setMobileScale(1);
-      setMobileOffset({ x: 0, y: 0 });
+    // Sync the display label with the real scale at end of gesture
+    if (mobileScaleRef.current <= 1.02) {
+      resetMobileZoom();
+    } else {
+      setMobileScaleDisplay(mobileScaleRef.current);
     }
     touchGestureRef.current = null;
+    setGestureActive(false);
   };
 
   return (
@@ -202,28 +269,34 @@ const ProductImageViewer = ({ image, alt }: ProductImageViewerProps) => {
         ref={frameRef}
         className="group relative overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(248,234,193,0.52)_38%,rgba(141,101,57,0.14)_100%)]"
         style={{
-          touchAction: isDesktopInteractive ? "auto" : mobileScale > 1 ? "none" : "pan-y",
+          // touchAction "none" when user has zoomed or is actively pinching
+          // so the page doesnt scroll/browser-zoom underneath us; else
+          // "pan-y" keeps the normal vertical scroll on the page.
+          touchAction: isDesktopInteractive
+            ? "auto"
+            : gestureActive || mobileScaleDisplay > 1
+            ? "none"
+            : "pan-y",
         }}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        onWheel={handleWheel}
         onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
       >
         <img
+          ref={imgRef}
           src={image}
           alt={alt}
-          className="min-h-[280px] w-full rounded-[24px] object-contain p-3 transition-transform duration-200 sm:min-h-[340px] md:min-h-[440px] md:p-5"
-          style={
-            isDesktopInteractive
-              ? undefined
-              : {
-                  transform: `translate3d(${mobileOffset.x}px, ${mobileOffset.y}px, 0) scale(${mobileScale})`,
-                }
-          }
+          className={`min-h-[280px] w-full select-none rounded-[24px] object-contain p-3 sm:min-h-[340px] md:min-h-[440px] md:p-5 ${
+            gestureActive ? "" : "transition-transform duration-200"
+          }`}
+          style={{
+            willChange: isDesktopInteractive ? undefined : "transform",
+            transformOrigin: "center center",
+          }}
+          draggable={false}
           onError={(event) => {
             event.currentTarget.src = "/placeholder.svg";
           }}
@@ -287,19 +360,14 @@ const ProductImageViewer = ({ image, alt }: ProductImageViewerProps) => {
             ? "Passe o mouse para ativar a lupa e use o scroll para ajustar o zoom."
             : "Use dois dedos para aproximar a imagem e arraste quando o zoom estiver ativo."}
         </span>
-        {!isDesktopInteractive && mobileScale > 1 ? (
-          <button
-            type="button"
-            onClick={() => {
-              setMobileScale(1);
-              setMobileOffset({ x: 0, y: 0 });
-            }}
-            className="rounded-full border border-border bg-background px-3 py-1 font-semibold text-foreground transition-colors hover:border-accent hover:text-accent"
-          >
+        {!isDesktopInteractive && mobileScaleDisplay > 1 ? (
+          <button type="button" onClick={resetMobileZoom} className="rounded-full border border-border bg-background px-3 py-1 font-semibold text-foreground transition-colors hover:border-accent hover:text-accent">
             Resetar zoom
           </button>
         ) : (
-          <span>{isDesktopInteractive ? `Zoom ${desktopZoom.toFixed(1)}x` : `Zoom ${mobileScale.toFixed(1)}x`}</span>
+          <span>
+            {isDesktopInteractive ? `Zoom ${desktopZoom.toFixed(1)}x` : `Zoom ${mobileScaleDisplay.toFixed(1)}x`}
+          </span>
         )}
       </div>
     </div>

@@ -25,6 +25,19 @@ const ProductPage = () => {
   const { addItem, items, updateQuantity } = useCart();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+  // Volta correto mesmo quando a pagina foi aberta direto (ex: compartilhar
+  // link). React Router v6 guarda o idx no history.state; se for 0 ou
+  // indefinido, nao ha entrada anterior no stack interno -> manda pra home.
+  const handleBack = () => {
+    const state = typeof window !== "undefined" ? (window.history.state as { idx?: number } | null) : null;
+    const idx = state?.idx ?? 0;
+    if (idx > 0) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   const productQuery = useQuery({
     queryKey: ["product", productId],
     queryFn: () => fetchProductById(productId),
@@ -102,7 +115,7 @@ const ProductPage = () => {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:py-10">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="mb-5 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />

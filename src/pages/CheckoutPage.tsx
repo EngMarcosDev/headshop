@@ -5,12 +5,18 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CheckoutSummary from "@/components/checkout/CheckoutSummary";
 import PaymentMethodSelector, { type CheckoutMethod } from "@/components/checkout/PaymentMethodSelector";
+import OrderSuccessPopup from "@/components/OrderSuccessPopup";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE, joinUrl } from "@/api/client";
 import { formatPrice } from "@/lib/priceFormatter";
 import { notifyAbacaxiError } from "@/lib/abacaxiTI";
+
+// Status transitions handled by the Mercado Pago webhook (server-side). The PIX
+// polling loop below just watches these to decide when to celebrate.
+const PAID_ORDER_STATUSES = new Set(["PAID", "CONFIRMED", "SHIPPED", "DELIVERED"]);
+const CANCELLED_ORDER_STATUSES = new Set(["CANCELLED", "CANCELADO", "REFUNDED"]);
 
 const BRAND_ICON = "/assets/branding/pineapple-icon.png";
 
@@ -86,6 +92,10 @@ const CheckoutPage = () => {
     available: true,
   });
   const [orderSnapshot, setOrderSnapshot] = useState<CheckoutSnapshot | null>(null);
+  // Holds the order ID + number to show the success popup after PIX confirmation
+  // (or after a manual QR scan returns to the page).
+  const [paidOrder, setPaidOrder] = useState<{ id: number; number?: string } | null>(null);
+  const [pixCancelled, setPixCancelled] = useState(false);
 
   const normalizedItems = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -121,6 +131,55 @@ const CheckoutPage = () => {
     const timer = window.setInterval(() => setPixNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [pixPayment?.expiresAt]);
+
+  // Poll the backend for order status while a PIX QR code is outstanding. The
+  // webhook flips paymentStatus → APPROVED; we show the success popup as soon as
+  // that happens. Poll stops on payment, cancellation, QR expiration, or unmount.
+  useEffect(() => {
+    if (!pixPayment?.orderId || paidOrder) return;
+    let cancelled = false;
+
+    const tokenHeader = (() => {
+      if (typeof window === "undefined") return {} as Record<string, string>;
+      const token = window.localStorage.getItem("bacaxita:token") || "";
+      return token ? { Authorization: `Bearer ${token}` } : ({} as Record<string, string>);
+    })();
+
+    const poll = async () => {
+      try {
+        const response = await fetch(
+          joinUrl(API_BASE, `/orders/${pixPayment.orderId}/status`),
+          { headers: { Accept: "application/json", ...tokenHeader }, credentials: "include" }
+        );
+        if (!response.ok) return;
+        const payload = (await response.json().catch(() => null)) as
+          | { id?: number; orderNumber?: string; status?: string; paymentStatus?: string; paidAt?: string | null }
+          | null;
+        if (!payload || cancelled) return;
+
+        const status = String(payload.status || "").toUpperCase();
+        const paymentStatus = String(payload.paymentStatus || "").toUpperCase();
+
+        if (PAID_ORDER_STATUSES.has(status) || paymentStatus === "APPROVED" || payload.paidAt) {
+          setPaidOrder({ id: Number(payload.id ?? pixPayment.orderId), number: payload.orderNumber });
+          return;
+        }
+
+        if (CANCELLED_ORDER_STATUSES.has(status)) {
+          setPixCancelled(true);
+        }
+      } catch {
+        // Swallow errors — next tick will retry.
+      }
+    };
+
+    void poll();
+    const interval = window.setInterval(poll, 4000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [pixPayment?.orderId, paidOrder]);
 
   useEffect(() => {
     const loadPixDiagnostic = async () => {
@@ -307,7 +366,11 @@ const CheckoutPage = () => {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:py-10">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            const state = typeof window !== "undefined" ? (window.history.state as { idx?: number } | null) : null;
+            if ((state?.idx ?? 0) > 0) navigate(-1);
+            else navigate("/");
+          }}
           className="mb-6 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -442,6 +505,17 @@ const CheckoutPage = () => {
       </main>
 
       <Footer />
+
+      {paidOrder ? (
+        <OrderSuccessPopup
+          orderId={paidOrder.number || paidOrder.id}
+          onClose={() => {
+            setPaidOrder(null);
+            setPixPayment(null);
+            navigate("/historico");
+          }}
+        />
+      ) : null}
     </div>
   );
 };
