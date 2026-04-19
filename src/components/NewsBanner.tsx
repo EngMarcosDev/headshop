@@ -109,7 +109,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
           {extended.map((slide, i) => (
             <article
               key={`${slide.id}-${i}`}
-              className="relative w-full flex-shrink-0 aspect-[4/3] sm:aspect-[16/9] md:aspect-[16/9]"
+              className="relative w-full flex-shrink-0 aspect-[16/9] sm:aspect-[21/9] md:aspect-[21/9]"
             >
               {/* Desktop */}
               <img

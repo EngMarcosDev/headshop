@@ -164,8 +164,8 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
         </nav>
 
         {/* Faded pineapple footer icon */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none select-none opacity-[0.08]">
-          <img src="/assets/branding/pineapple-icon.png" alt="" aria-hidden="true" className="w-16 h-16 object-contain brightness-0 invert" />
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none select-none opacity-[0.07]">
+          <img src="/assets/branding/pineapple-icon.png" alt="" aria-hidden="true" className="w-36 h-36 object-contain brightness-0 invert" />
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rasta-green via-rasta-yellow to-rasta-red" />
