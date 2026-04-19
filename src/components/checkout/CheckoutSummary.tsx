@@ -5,9 +5,14 @@ import { ShoppingBag } from "lucide-react";
 interface CheckoutSummaryProps {
   items: CartItem[];
   total: number;
+  discount?: number;
+  couponCode?: string | null;
 }
 
-const CheckoutSummary = ({ items, total }: CheckoutSummaryProps) => {
+const CheckoutSummary = ({ items, total, discount = 0, couponCode }: CheckoutSummaryProps) => {
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const finalTotal = discount > 0 ? Math.max(0, subtotal - discount) : total;
+
   return (
     <aside className="rounded-[24px] border border-border bg-card p-5 xl:sticky xl:top-6">
       <div className="mb-4 flex items-center gap-2">
@@ -42,15 +47,21 @@ const CheckoutSummary = ({ items, total }: CheckoutSummaryProps) => {
       <div className="space-y-2 border-t border-border pt-4">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>Subtotal</span>
-          <span>{formatPrice(total, { decimals: 2 })}</span>
+          <span>{formatPrice(subtotal, { decimals: 2 })}</span>
         </div>
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>Frete</span>
-          <span className="font-medium text-accent">Gratis</span>
+          <span className="font-medium text-accent">Grátis</span>
         </div>
+        {discount > 0 && couponCode ? (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-green-600">Cupom {couponCode}</span>
+            <span className="font-medium text-green-600">- {formatPrice(discount, { decimals: 2 })}</span>
+          </div>
+        ) : null}
         <div className="flex items-center justify-between border-t border-border pt-3">
           <span className="font-bold text-foreground">Total</span>
-          <span className="text-xl font-bold text-accent dark:text-white">{formatPrice(total, { decimals: 2 })}</span>
+          <span className="text-xl font-bold text-accent dark:text-white">{formatPrice(finalTotal, { decimals: 2 })}</span>
         </div>
       </div>
     </aside>

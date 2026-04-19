@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowLeft, Copy } from "lucide-react";
+import { AlertCircle, ArrowLeft, Copy, Tag, X } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CheckoutSummary from "@/components/checkout/CheckoutSummary";
 import PaymentMethodSelector, { type CheckoutMethod } from "@/components/checkout/PaymentMethodSelector";
 import OrderSuccessPopup from "@/components/OrderSuccessPopup";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE, joinUrl } from "@/api/client";
@@ -97,16 +98,57 @@ const CheckoutPage = () => {
   const [paidOrder, setPaidOrder] = useState<{ id: number; number?: string } | null>(null);
   const [pixCancelled, setPixCancelled] = useState(false);
 
+  // Cupom
+  const [couponInput, setCouponInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+    description?: string | null;
+  } | null>(null);
+
   const normalizedItems = useMemo(() => {
     if (!Array.isArray(items)) return [];
     return items.map(normalizeCartItem).filter((item) => item.id > 0 && item.quantity > 0);
   }, [items]);
 
   const checkoutItems = normalizedItems.length > 0 ? normalizedItems : orderSnapshot?.items ?? [];
-  const checkoutTotal =
+  const checkoutSubtotal =
     normalizedItems.length > 0
       ? totalPrice
       : orderSnapshot?.total ?? checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const couponDiscount = appliedCoupon?.discountAmount ?? 0;
+  const checkoutTotal = Math.max(0, checkoutSubtotal - couponDiscount);
+
+  const handleValidateCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const response = await fetch(joinUrl(API_BASE, "/coupons/validate"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: checkoutSubtotal }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setCouponError(data?.error || "Cupom inválido.");
+        return;
+      }
+      setAppliedCoupon({
+        code: data.code,
+        discountAmount: data.discountAmount,
+        description: data.description,
+      });
+      setCouponInput("");
+    } catch {
+      setCouponError("Erro ao validar cupom. Tente novamente.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const pixExpiresAtMs = useMemo(() => {
     if (!pixPayment?.expiresAt) return null;
@@ -264,6 +306,7 @@ const CheckoutPage = () => {
             quantity: item.quantity,
             unitPrice: item.price,
           })),
+          couponCode: appliedCoupon?.code ?? null,
         }),
       });
 
@@ -473,6 +516,60 @@ const CheckoutPage = () => {
                 </div>
               ) : null}
 
+              {/* Campo de cupom */}
+              {!pixPayment ? (
+                <div className="rounded-[24px] border border-border bg-card p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-accent" />
+                    <span className="font-semibold text-sm">Cupom de desconto</span>
+                  </div>
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between rounded-xl bg-green-50 border border-green-200 px-4 py-2">
+                      <div>
+                        <p className="text-sm font-semibold text-green-700">{appliedCoupon.code}</p>
+                        {appliedCoupon.description ? (
+                          <p className="text-xs text-green-600">{appliedCoupon.description}</p>
+                        ) : null}
+                        <p className="text-xs text-green-600">
+                          - {appliedCoupon.discountAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} aplicado
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setAppliedCoupon(null); setCouponError(null); }}
+                        className="text-green-500 hover:text-green-700"
+                        aria-label="Remover cupom"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Código do cupom"
+                        value={couponInput}
+                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") void handleValidateCoupon(); }}
+                        className="uppercase"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!couponInput.trim() || couponLoading}
+                        onClick={() => void handleValidateCoupon()}
+                      >
+                        {couponLoading ? "..." : "Aplicar"}
+                      </Button>
+                    </div>
+                  )}
+                  {couponError ? (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" /> {couponError}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
               {error ? (
                 <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                   <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -498,7 +595,12 @@ const CheckoutPage = () => {
             </section>
 
             <div>
-              <CheckoutSummary items={checkoutItems} total={checkoutTotal} />
+              <CheckoutSummary
+                items={checkoutItems}
+                total={checkoutTotal}
+                discount={couponDiscount}
+                couponCode={appliedCoupon?.code}
+              />
             </div>
           </div>
         )}
