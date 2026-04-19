@@ -24,7 +24,12 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const links: MenuAction[] = [
     ...menuLinks,
-    ...(user ? [{ name: "Historico de Compras", type: "route" as const, href: "/historico" }] : []),
+    ...(user
+      ? [
+          { name: "Historico de Compras", type: "route" as const, href: "/historico" },
+          { name: "Minha Conta", type: "route" as const, href: "/conta/configuracoes" },
+        ]
+      : []),
   ];
   const erpLoginUrl = import.meta.env.VITE_ERP_URL || "https://erp.bacaxita.com.br/login";
 

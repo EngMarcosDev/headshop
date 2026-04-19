@@ -4,6 +4,7 @@ import { API_BASE, joinUrl } from "@/api/client";
 interface AuthUser {
   email: string;
   name?: string;
+  phone?: string;
   isAdmin: boolean;
   token?: string;
 }
@@ -25,6 +26,9 @@ interface AuthContextType {
   resendVerification: (email: string) => Promise<{ ok: boolean; verificationCode?: string; error?: string }>;
   googleLogin: (payload: { idToken?: string; accessToken?: string }) => Promise<{ ok: boolean; needsRegistration?: boolean; email?: string; name?: string; error?: string }>;
   logout: () => void;
+  updateProfile: (data: { name: string; phone?: string }) => Promise<{ ok: boolean; error?: string }>;
+  changePassword: (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => Promise<{ ok: boolean; error?: string }>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -193,6 +197,81 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateProfile = async (data: { name: string; phone?: string }) => {
+    if (!user?.token) return { ok: false, error: "Nao autenticado" };
+    try {
+      const response = await fetch(joinUrl(API_BASE, "/user/profile"), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      const json = await response.json().catch(() => null);
+      if (!response.ok) {
+        return { ok: false, error: json?.error || "Nao foi possivel atualizar o perfil." };
+      }
+      setUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              name: json?.user?.name ?? prev.name,
+              phone: json?.user?.phone ?? prev.phone,
+            }
+          : prev
+      );
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Erro de conexao." };
+    }
+  };
+
+  const changePassword = async (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
+    if (!user?.token) return { ok: false, error: "Nao autenticado" };
+    try {
+      const response = await fetch(joinUrl(API_BASE, "/user/change-password"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      const json = await response.json().catch(() => null);
+      if (!response.ok) {
+        return { ok: false, error: json?.error || "Nao foi possivel alterar a senha." };
+      }
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Erro de conexao." };
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (!user?.token) return;
+    try {
+      const response = await fetch(joinUrl(API_BASE, "/user/profile"), {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (!response.ok) return;
+      const json = await response.json().catch(() => null);
+      if (json?.user) {
+        setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                name: json.user.name ?? prev.name,
+                phone: json.user.phone ?? prev.phone,
+              }
+            : prev
+        );
+      }
+    } catch {
+      // silently ignore
+    }
+  };
+
   const logout = () => {
     setUser(null);
   };
@@ -210,7 +289,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, verifyEmail, resendVerification, googleLogin, logout }}>
+    <AuthContext.Provider value={{ user, login, register, verifyEmail, resendVerification, googleLogin, logout, updateProfile, changePassword, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

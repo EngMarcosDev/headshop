@@ -37,6 +37,7 @@ const ErpAccessPage = lazy(() => import("./pages/ErpAccessPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
 const PaymentErrorPage = lazy(() => import("./pages/PaymentErrorPage"));
 const PaymentPendingPage = lazy(() => import("./pages/PaymentPendingPage"));
+const AccountSettingsPage = lazy(() => import("./pages/AccountSettingsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -83,6 +84,7 @@ const App = () => (
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/carteira" element={<WalletPage />} />
                 <Route path="/historico" element={<HistoryPage />} />
+                <Route path="/conta/configuracoes" element={<AccountSettingsPage />} />
                 <Route path="/erp" element={<ErpAccessPage />} />
                 <Route path="/pagamento/sucesso" element={<PaymentSuccessPage />} />
                 <Route path="/pagamento/erro" element={<PaymentErrorPage />} />
