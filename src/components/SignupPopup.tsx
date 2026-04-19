@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -108,50 +108,46 @@ const SignupPopup = () => {
   const isLogged = Boolean(user?.email && user?.token);
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim();
 
-  const openPopup = (options?: PopupTriggerDetail) => {
+  const openPopup = useCallback((options?: PopupTriggerDetail) => {
     if (isLogged) return;
-    const force = Boolean(options?.force);
     const nextMode = options?.mode;
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (force || nextMode) {
+    if (options?.force || nextMode) {
       setMode(nextMode || "login");
       setError(null);
       setLoading(false);
     }
     setIsOpen(true);
-  };
+  }, [isLogged]);
 
-  // Auto-open popup on signup
+  // Auto-open popup on page load (once, after 4s)
   useEffect(() => {
     if (isLogged) return;
     timerRef.current = window.setTimeout(() => openPopup({ mode: "login" }), 4000);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [user?.email, isLogged]);
+  }, [isLogged, openPopup]);
 
-  // Auto-open popup on add to cart
+  // Auto-open popup when item is added to cart
   useEffect(() => {
     if (!isLogged && totalItems > prevTotalItemsRef.current) {
       openPopup({ mode: "login" });
     }
     prevTotalItemsRef.current = totalItems;
-  }, [totalItems, isLogged]);
+  }, [totalItems, isLogged, openPopup]);
 
-  // Listen for popup trigger
+  // Listen for external popup trigger (e.g. from checkout)
   useEffect(() => {
     const onTrigger = (event: Event) => {
       const detail = (event as CustomEvent<PopupTriggerDetail>).detail;
-      openPopup({
-        force: detail?.force,
-        mode: detail?.mode,
-      });
+      openPopup({ force: detail?.force, mode: detail?.mode });
     };
     window.addEventListener("bacaxita:login-popup", onTrigger as EventListener);
     return () => {
       window.removeEventListener("bacaxita:login-popup", onTrigger as EventListener);
     };
-  }, [isLogged]);
+  }, [openPopup]);
 
   // Close popup on login
   useEffect(() => {
