@@ -48,21 +48,23 @@ const Header = () => {
 
             <div className="flex items-center gap-0.5 sm:gap-1">
               {user?.email ? (
-                <Link
-                  to="/conta/configuracoes"
-                  className="hidden sm:inline-flex h-8 items-center justify-center rounded-md px-2 text-[11px] uppercase tracking-[0.1em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground transition-colors"
-                  title="Minha Conta"
-                >
-                  <Settings className="h-4 w-4" />
-                </Link>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                  className="h-8 px-1.5 text-[10px] uppercase tracking-[0.12em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground sm:px-2 sm:text-[11px] sm:tracking-wider"
-                >
-                  Sair
-                </Button>
+                <>
+                  <Link
+                    to="/conta/configuracoes"
+                    className="hidden sm:inline-flex h-8 items-center justify-center rounded-md px-2 text-[11px] uppercase tracking-[0.1em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground transition-colors"
+                    title="Minha Conta"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={logout}
+                    className="h-8 px-1.5 text-[10px] uppercase tracking-[0.12em] text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground sm:px-2 sm:text-[11px] sm:tracking-wider"
+                  >
+                    Sair
+                  </Button>
+                </>
               ) : (
                 <div className="hidden items-center gap-1 sm:flex">
                   <Button
