@@ -90,6 +90,11 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
 
   return (
     <section className="news-banner">
+      {/* Section title — shown whenever there are active banner slides */}
+      <div className="px-4 pt-5 pb-2 sm:px-6 md:px-10 lg:px-16">
+        <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Novidades</h2>
+      </div>
+
       <div className="relative overflow-hidden border-y border-border/70 bg-card shadow-[0_24px_70px_-42px_rgba(55,32,12,0.55)]">
         <div
           className="flex"
@@ -127,20 +132,6 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
                 loading="lazy"
                 decoding="async"
               />
-
-              {/* Novidades overlay — top left */}
-              <div className="absolute top-0 left-0 z-10 p-3 sm:p-4 md:p-6">
-                <div className="flex flex-col gap-1">
-                  <span className="w-fit rounded-full bg-black/40 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/90 backdrop-blur-sm sm:text-[10px]">
-                    Novidades
-                  </span>
-                  {slide.name && (
-                    <span className="w-fit rounded-full bg-black/30 px-2.5 py-0.5 text-xs font-bold text-white backdrop-blur-sm sm:text-sm">
-                      {slide.name}
-                    </span>
-                  )}
-                </div>
-              </div>
 
               {slide.showPrice && slide.price > 0 ? (
                 <div className="relative z-10 flex h-full items-end">

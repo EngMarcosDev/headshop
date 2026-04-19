@@ -24,12 +24,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const links: MenuAction[] = [
     ...menuLinks,
-    ...(user
-      ? [
-          { name: "Historico de Compras", type: "route" as const, href: "/historico" },
-          { name: "Minha Conta", type: "route" as const, href: "/conta/configuracoes" },
-        ]
-      : []),
+    ...(user ? [{ name: "Historico de Compras", type: "route" as const, href: "/historico" }] : []),
   ];
   const erpLoginUrl = import.meta.env.VITE_ERP_URL || "https://erp.bacaxita.com.br/login";
 
@@ -157,25 +152,11 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                 }}
                 className="w-full rounded-lg border border-rasta-yellow/35 bg-rasta-yellow/10 px-4 py-3 text-left text-base font-semibold text-rasta-yellow transition-all hover:bg-rasta-yellow/20 hover:text-white"
               >
-                Abacaxita ERP
+                ERP Bacaxita
               </button>
             </div>
           )}
         </nav>
-
-        {/* Faded pineapple footer icon */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none select-none opacity-[0.06]">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 100" width="72" height="90" fill="white" aria-hidden="true">
-            {/* leaves */}
-            <ellipse cx="40" cy="14" rx="5" ry="13" transform="rotate(-20 40 14)" />
-            <ellipse cx="40" cy="14" rx="5" ry="13" transform="rotate(0 40 14)" />
-            <ellipse cx="40" cy="14" rx="5" ry="13" transform="rotate(20 40 14)" />
-            <ellipse cx="40" cy="14" rx="3" ry="9" transform="rotate(-38 40 14)" />
-            <ellipse cx="40" cy="14" rx="3" ry="9" transform="rotate(38 40 14)" />
-            {/* body */}
-            <ellipse cx="40" cy="65" rx="22" ry="30" />
-          </svg>
-        </div>
 
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rasta-green via-rasta-yellow to-rasta-red" />
       </div>

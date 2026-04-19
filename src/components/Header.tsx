@@ -17,6 +17,9 @@ const Header = () => {
   useEffect(() => {
     const handleCartAdded = (event: Event) => {
       const customEvent = event as CustomEvent<{ category?: string }>;
+      const category = String(customEvent.detail?.category || "").toLowerCase();
+      if (category !== "bacakits") return;
+
       setHighlightCartBadge(true);
       window.setTimeout(() => setHighlightCartBadge(false), 1300);
     };
