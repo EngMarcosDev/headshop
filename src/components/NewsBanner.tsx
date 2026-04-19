@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Product } from "@/api/types";
 
 interface NewsBannerProps {
@@ -8,6 +8,8 @@ interface NewsBannerProps {
 }
 
 const AUTO_PLAY_MS = 5000;
+const TRANSITION_MS = 700;
+
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -22,8 +24,6 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
         .map((product) => ({
           id: product.id,
           name: product.name,
-          // Desktop: bannerImage (paisagem larga). Mobile: image (recortada/vertical).
-          // Se mobile nao tiver imagem separada, usa a mesma do desktop.
           desktopImage: product.bannerImage || product.image,
           mobileImage: (product.image && product.image !== product.bannerImage) ? product.image : (product.bannerImage || product.image),
           price: Number(product.price || 0),
@@ -32,19 +32,45 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
         .slice(0, 8),
     [products]
   );
-  const [index, setIndex] = useState(0);
 
+  // Virtual extra slide at the end for seamless infinite loop (same technique as PromoBanner)
+  const extended = useMemo(
+    () => (slides.length > 1 ? [...slides, slides[0]] : slides),
+    [slides]
+  );
+
+  const [index, setIndex] = useState(0);
+  const [transitioning, setTransitioning] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+
+  // Reset to first slide when slides change
   useEffect(() => {
     setIndex(0);
+    setTransitioning(true);
   }, [slides.length]);
 
+  // Auto-play: always increment forward; seamless reset handled in onTransitionEnd
   useEffect(() => {
     if (slides.length <= 1) return;
-    const timer = window.setInterval(() => {
-      setIndex((prev) => (prev + 1) % slides.length);
+    intervalRef.current = window.setInterval(() => {
+      setTransitioning(true);
+      setIndex((prev) => prev + 1);
     }, AUTO_PLAY_MS);
-    return () => window.clearInterval(timer);
+    return () => {
+      if (intervalRef.current != null) window.clearInterval(intervalRef.current);
+    };
   }, [slides.length]);
+
+  // When a dot is clicked, restart interval from that position
+  const goTo = (dotIndex: number) => {
+    if (intervalRef.current != null) window.clearInterval(intervalRef.current);
+    setTransitioning(true);
+    setIndex(dotIndex);
+    intervalRef.current = window.setInterval(() => {
+      setTransitioning(true);
+      setIndex((prev) => prev + 1);
+    }, AUTO_PLAY_MS);
+  };
 
   if (isLoading) {
     return (
@@ -60,16 +86,37 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
     return null;
   }
 
+  const activeDot = index % slides.length;
+
   return (
     <section className="news-banner">
+      {/* Section title — shown whenever there are active banner slides */}
+      <div className="px-4 pt-5 pb-2 sm:px-6 md:px-10 lg:px-16">
+        <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Novidades</h2>
+      </div>
+
       <div className="relative overflow-hidden border-y border-border/70 bg-card shadow-[0_24px_70px_-42px_rgba(55,32,12,0.55)]">
         <div
-          className="flex transition-transform duration-700 ease-out"
-          style={{ transform: `translateX(-${index * 100}%)` }}
+          className="flex"
+          style={{
+            transform: `translateX(-${index * 100}%)`,
+            transition: transitioning ? `transform ${TRANSITION_MS}ms ease-out` : "none",
+          }}
+          onTransitionEnd={() => {
+            // When we land on the virtual clone of slide[0], snap back instantly
+            if (index === slides.length) {
+              setTransitioning(false);
+              setIndex(0);
+              window.setTimeout(() => setTransitioning(true), 30);
+            }
+          }}
         >
-          {slides.map((slide) => (
-            <article key={slide.id} className="relative min-h-[260px] w-full flex-shrink-0 sm:min-h-[320px] md:min-h-[420px] lg:min-h-[500px]">
-              {/* Desktop: imagem larga (≥ md) */}
+          {extended.map((slide, i) => (
+            <article
+              key={`${slide.id}-${i}`}
+              className="relative min-h-[260px] w-full flex-shrink-0 sm:min-h-[320px] md:min-h-[420px] lg:min-h-[500px]"
+            >
+              {/* Desktop */}
               <img
                 src={slide.desktopImage}
                 alt={slide.name}
@@ -77,7 +124,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
                 loading="lazy"
                 decoding="async"
               />
-              {/* Mobile: imagem recortada (< md) */}
+              {/* Mobile */}
               <img
                 src={slide.mobileImage}
                 alt={slide.name}
@@ -89,9 +136,6 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
               {slide.showPrice && slide.price > 0 ? (
                 <div className="relative z-10 flex h-full items-end">
                   <div className="w-full px-4 py-5 sm:px-6 sm:py-6 md:px-10 md:py-8 lg:px-16 lg:py-10">
-                    {/* Preco no banner: bg branco e HARD-CODED, entao o texto
-                        precisa de cor fixa (nao usar text-primary pois ele
-                        vira quase branco no modo noturno -> branco em branco). */}
                     <div className="inline-flex w-fit items-center rounded-2xl border border-black/5 bg-white/95 px-4 py-2 text-sm font-semibold text-neutral-900 shadow-xl">
                       {formatCurrency(slide.price)}
                     </div>
@@ -108,9 +152,9 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
               <button
                 key={`dot-${slide.id}`}
                 type="button"
-                onClick={() => setIndex(dotIndex)}
+                onClick={() => goTo(dotIndex)}
                 className={`h-2.5 rounded-full border border-white/20 transition-all ${
-                  dotIndex === index ? "w-10 bg-white shadow-sm" : "w-2.5 bg-white/35 backdrop-blur-sm"
+                  dotIndex === activeDot ? "w-10 bg-white shadow-sm" : "w-2.5 bg-white/35 backdrop-blur-sm"
                 }`}
                 aria-label={`Exibir banner ${dotIndex + 1}`}
               />

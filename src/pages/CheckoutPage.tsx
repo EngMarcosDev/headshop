@@ -618,6 +618,45 @@ const CheckoutPage = () => {
           }}
         />
       ) : null}
+
+      {/* Popup de cancelamento por inatividade do pagamento PIX */}
+      {pixCancelled && !paidOrder ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-destructive/30 bg-card p-6 shadow-2xl text-center space-y-4">
+            <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-full bg-destructive/10">
+              <AlertCircle className="h-7 w-7 text-destructive" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Pedido cancelado</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                O pagamento não foi confirmado dentro do prazo e o pedido foi cancelado automaticamente.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setPixCancelled(false);
+                  setPixPayment(null);
+                  navigate("/");
+                }}
+              >
+                Voltar à loja
+              </Button>
+              <Button
+                className="flex-1 bg-rasta-green text-white hover:bg-rasta-green/90"
+                onClick={() => {
+                  setPixCancelled(false);
+                  setPixPayment(null);
+                }}
+              >
+                Tentar novamente
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
