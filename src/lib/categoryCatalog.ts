@@ -72,6 +72,20 @@ export const getCategoryIcon = (slug: string): LucideIcon => {
   return iconMap[normalized] || Sparkles;
 };
 
+const resolveImageUrl = (image?: string | null): string | null => {
+  if (!image) return null;
+  // Base64 data URL or full URL — use as-is
+  if (image.startsWith("data:") || image.startsWith("http://") || image.startsWith("https://")) {
+    return image;
+  }
+  // Relative path: prepend backend origin
+  const backendBase =
+    typeof window !== "undefined" && window.location.hostname.endsWith("bacaxita.com.br")
+      ? `${window.location.protocol}//${window.location.host}`
+      : "http://localhost:5050";
+  return `${backendBase}${image.startsWith("/") ? "" : "/"}${image}`;
+};
+
 export const buildCategoryFromApi = (entry: { slug: string; name: string; image?: string | null }): HeadshopCategory => {
   const slug = normalizeCategorySlug(entry.slug);
   return {
@@ -79,6 +93,6 @@ export const buildCategoryFromApi = (entry: { slug: string; name: string; image?
     name: entry.name || slug,
     href: `/categoria/${slug}`,
     icon: getCategoryIcon(slug),
-    image: entry.image || null,
+    image: resolveImageUrl(entry.image),
   };
 };
