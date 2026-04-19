@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, ShoppingBag, UserCircle } from "lucide-react";
+import { Menu, ShoppingBag } from "lucide-react";
 import { Button } from "./ui/button";
 import MobileMenu from "./MobileMenu";
 import { useCart } from "@/contexts/CartContext";
@@ -46,14 +46,6 @@ const Header = () => {
             <div className="flex items-center gap-0.5 sm:gap-1">
               {user?.email ? (
                 <>
-                  <Link
-                    to="/conta/configuracoes"
-                    className="hidden h-8 items-center gap-1 px-2 text-[11px] uppercase tracking-[0.1em] text-header-foreground/80 hover:text-header-foreground transition-colors sm:flex"
-                    title="Minha Conta"
-                  >
-                    <UserCircle className="h-4 w-4" />
-                    <span className="hidden lg:inline">Conta</span>
-                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"

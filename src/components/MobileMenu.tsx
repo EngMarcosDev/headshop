@@ -12,7 +12,7 @@ interface MobileMenuProps {
 type MenuAction = { name: string; type: "route"; href: string };
 
 const menuLinks: MenuAction[] = [
-  { name: "Inicio", type: "route", href: "/" },
+  { name: "Início", type: "route", href: "/" },
   { name: "Produtos", type: "route", href: "/produtos" },
   { name: "Sobre", type: "route", href: "/sobre" },
   { name: "Contato", type: "route", href: "/contato" },
@@ -26,7 +26,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
     ...menuLinks,
     ...(user
       ? [
-          { name: "Historico de Compras", type: "route" as const, href: "/historico" },
+          { name: "Histórico de Compras", type: "route" as const, href: "/historico" },
           { name: "Minha Conta", type: "route" as const, href: "/conta/configuracoes" },
         ]
       : []),

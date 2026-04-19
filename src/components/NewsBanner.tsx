@@ -76,7 +76,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
     return (
       <section className="news-banner">
         <div className="overflow-hidden border-y border-border/60 bg-muted/60 animate-pulse">
-          <div className="w-full aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9]" />
+          <div className="w-full aspect-[4/3] sm:aspect-[16/9] md:aspect-[16/9]" />
         </div>
       </section>
     );
@@ -109,7 +109,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
           {extended.map((slide, i) => (
             <article
               key={`${slide.id}-${i}`}
-              className="relative w-full flex-shrink-0 aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9]"
+              className="relative w-full flex-shrink-0 aspect-[4/3] sm:aspect-[16/9] md:aspect-[16/9]"
             >
               {/* Desktop */}
               <img

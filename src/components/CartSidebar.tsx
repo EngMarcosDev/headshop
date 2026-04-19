@@ -59,7 +59,7 @@ const CartSidebar = () => {
           {items.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center py-8 text-center">
               <ShoppingBag className="mb-4 h-12 w-12 text-muted-foreground/30" />
-              <p className="mb-2 font-medium text-foreground">Sua sacola esta vazia</p>
+              <p className="mb-2 font-medium text-foreground">Sua sacola está vazia</p>
               <p className="text-sm text-muted-foreground">Adicione produtos para continuar</p>
             </div>
           ) : (

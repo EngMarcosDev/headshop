@@ -19,15 +19,15 @@ const Footer = () => {
             <div className="text-center md:text-left">
               <h3 className="mb-3 text-xl font-display font-bold tracking-widest md:text-2xl">ABACAXITA</h3>
               <p className="mx-auto max-w-xs text-sm leading-relaxed opacity-75 md:mx-0">
-                Sua loja de acessorios com os melhores produtos e precos do mercado.
+                Sua loja de acessórios com os melhores produtos e preços do mercado.
               </p>
             </div>
 
             <div className="text-center">
-              <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rasta-yellow">Links Rapidos</h4>
+              <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-rasta-yellow">Links Rápidos</h4>
               <nav className="flex flex-col gap-2">
                 <Link to="/" className="text-sm opacity-75 transition-all hover:text-rasta-yellow hover:opacity-100">
-                  Inicio
+                  Início
                 </Link>
                 <Link
                   to="/produtos"
@@ -39,7 +39,7 @@ const Footer = () => {
                   to="/sobre"
                   className="text-sm opacity-75 transition-all hover:text-rasta-yellow hover:opacity-100"
                 >
-                  Sobre nos
+                  Sobre nós
                 </Link>
                 <Link
                   to="/contato"

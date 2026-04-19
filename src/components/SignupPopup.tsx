@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -108,50 +108,46 @@ const SignupPopup = () => {
   const isLogged = Boolean(user?.email && user?.token);
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim();
 
-  const openPopup = (options?: PopupTriggerDetail) => {
+  const openPopup = useCallback((options?: PopupTriggerDetail) => {
     if (isLogged) return;
-    const force = Boolean(options?.force);
     const nextMode = options?.mode;
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (force || nextMode) {
+    if (options?.force || nextMode) {
       setMode(nextMode || "login");
       setError(null);
       setLoading(false);
     }
     setIsOpen(true);
-  };
+  }, [isLogged]);
 
-  // Auto-open popup on signup
+  // Auto-open popup on page load (once, after 4s)
   useEffect(() => {
     if (isLogged) return;
     timerRef.current = window.setTimeout(() => openPopup({ mode: "login" }), 4000);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [user?.email, isLogged]);
+  }, [isLogged, openPopup]);
 
-  // Auto-open popup on add to cart
+  // Auto-open popup when item is added to cart
   useEffect(() => {
     if (!isLogged && totalItems > prevTotalItemsRef.current) {
       openPopup({ mode: "login" });
     }
     prevTotalItemsRef.current = totalItems;
-  }, [totalItems, isLogged]);
+  }, [totalItems, isLogged, openPopup]);
 
-  // Listen for popup trigger
+  // Listen for external popup trigger (e.g. from checkout)
   useEffect(() => {
     const onTrigger = (event: Event) => {
       const detail = (event as CustomEvent<PopupTriggerDetail>).detail;
-      openPopup({
-        force: detail?.force,
-        mode: detail?.mode,
-      });
+      openPopup({ force: detail?.force, mode: detail?.mode });
     };
     window.addEventListener("bacaxita:login-popup", onTrigger as EventListener);
     return () => {
       window.removeEventListener("bacaxita:login-popup", onTrigger as EventListener);
     };
-  }, [isLogged]);
+  }, [openPopup]);
 
   // Close popup on login
   useEffect(() => {
@@ -273,7 +269,7 @@ const SignupPopup = () => {
   const handleResendCode = async () => {
     const email = normalizeEmail(verifyEmailAddr);
     if (!email) {
-      setError({ message: "Informe o e-mail para reenviar o codigo" });
+      setError({ message: "Informe o e-mail para reenviar o código" });
       return;
     }
 
@@ -282,13 +278,13 @@ const SignupPopup = () => {
     try {
       const result = await resendVerification(email);
       if (!result.ok) {
-        setError({ message: result.error || "Nao foi possivel reenviar o codigo" });
+        setError({ message: result.error || "Não foi possível reenviar o código" });
         return;
       }
 
-      setError({ message: "Codigo reenviado para seu e-mail", type: "success" });
+      setError({ message: "Código reenviado para seu e-mail", type: "success" });
     } catch {
-      setError({ message: "Erro ao reenviar o codigo" });
+      setError({ message: "Erro ao reenviar o código" });
     } finally {
       setLoading(false);
     }
@@ -318,7 +314,7 @@ const SignupPopup = () => {
   const handleGoogleLogin = async () => {
     setError(null);
     if (!googleClientId) {
-      setError({ message: "Google nao configurado" });
+      setError({ message: "Google não configurado" });
       return;
     }
 
@@ -327,7 +323,7 @@ const SignupPopup = () => {
       await loadGoogleIdentityScript();
       const tokenClientFactory = window.google?.accounts?.oauth2?.initTokenClient;
       if (!tokenClientFactory) {
-        setError({ message: "Google indisponivel" });
+        setError({ message: "Google indisponível" });
         setLoading(false);
         return;
       }
@@ -348,7 +344,7 @@ const SignupPopup = () => {
           }
         },
         error_callback: () => {
-          setError({ message: "Nao foi possivel abrir o login do Google" });
+          setError({ message: "Não foi possível abrir o login do Google" });
           setLoading(false);
         },
       });

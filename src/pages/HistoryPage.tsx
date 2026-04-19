@@ -36,7 +36,7 @@ const HistoryPage = () => {
     queryFn: async () => {
       const response = await fetch(joinUrl(API_BASE, `/users/${encodeURIComponent(user?.email ?? "")}/orders`));
       if (!response.ok) {
-        throw new Error("Erro ao carregar historico");
+        throw new Error("Erro ao carregar histórico");
       }
       return (await response.json()) as HistoryOrder[];
     },
@@ -74,7 +74,7 @@ const HistoryPage = () => {
         <div className="max-w-6xl mx-auto px-4 py-10">
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-xl md:text-3xl font-display font-bold text-accent uppercase tracking-widest">
-              Historico de Compras
+              Histórico de Compras
             </h1>
             <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
               Voltar
@@ -82,9 +82,9 @@ const HistoryPage = () => {
           </div>
 
           <div className="mb-4 rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-medium text-foreground">Area restrita de pagamento</p>
+            <p className="text-sm font-medium text-foreground">Área restrita de pagamento</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Para seguranca, sua carteira de pagamento fica disponivel dentro do historico e exige senha para abrir.
+              Para segurança, sua carteira de pagamento fica disponível dentro do histórico e exige senha para abrir.
             </p>
             <Link
               to="/carteira"
@@ -101,7 +101,7 @@ const HistoryPage = () => {
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Codigo do pedido"
+                placeholder="Código do pedido"
                 className="h-10 rounded-md border border-border bg-background px-3 text-sm"
               />
               <select
@@ -131,8 +131,8 @@ const HistoryPage = () => {
           </div>
 
           <div className="rounded-xl border border-border bg-card p-4 md:p-6">
-            {ordersQuery.isLoading ? <p className="text-sm text-muted-foreground">Carregando historico...</p> : null}
-            {ordersQuery.isError ? <p className="text-sm text-muted-foreground">Nao foi possivel carregar o historico.</p> : null}
+            {ordersQuery.isLoading ? <p className="text-sm text-muted-foreground">Carregando histórico...</p> : null}
+            {ordersQuery.isError ? <p className="text-sm text-muted-foreground">Não foi possível carregar o histórico.</p> : null}
             {!ordersQuery.isLoading && !ordersQuery.isError && filteredOrders.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum pedido encontrado com os filtros selecionados.</p>
             ) : null}
@@ -141,7 +141,7 @@ const HistoryPage = () => {
               <>
                 <p className="mb-3 text-xs text-muted-foreground">
                   Exibindo {visibleOrders.length} de {filteredOrders.length} pedido(s)
-                  {filteredOrders.length > 10 ? " (maximo 10 por vez)." : "."}
+                  {filteredOrders.length > 10 ? " (máximo 10 por vez)." : "."}
                 </p>
 
                 <div className="hidden overflow-x-auto md:block">
