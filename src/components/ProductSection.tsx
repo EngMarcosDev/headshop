@@ -81,6 +81,8 @@ const ProductSection = ({
                         gallery={product.gallery}
                         category={product.category}
                         isNew={product.isNew}
+                        stockQty={product.stockQty}
+                        minStock={product.minStock}
                       />
                     </div>
                   ))}

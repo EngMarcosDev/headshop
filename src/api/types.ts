@@ -21,6 +21,8 @@ export interface Product {
   subcategory?: string;
   material?: string;
   brand?: string;
+  stockQty?: number | null;
+  minStock?: number | null;
 }
 
 export interface ApiListResponse<T> {

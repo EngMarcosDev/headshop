@@ -8,7 +8,7 @@ interface NewsBannerProps {
 }
 
 const AUTO_PLAY_MS = 5000;
-const TRANSITION_MS = 700;
+const TRANSITION_MS = 480;
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
@@ -95,7 +95,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
           className="flex"
           style={{
             transform: `translateX(-${index * 100}%)`,
-            transition: transitioning ? `transform ${TRANSITION_MS}ms ease-out` : "none",
+            transition: transitioning ? `transform ${TRANSITION_MS}ms cubic-bezier(0.4, 0, 0.2, 1)` : "none",
           }}
           onTransitionEnd={() => {
             // When we land on the virtual clone of slide[0], snap back instantly
@@ -109,7 +109,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
           {extended.map((slide, i) => (
             <article
               key={`${slide.id}-${i}`}
-              className="relative w-full flex-shrink-0 aspect-[16/9] sm:aspect-[21/9] md:aspect-[21/9]"
+              className="relative w-full flex-shrink-0 h-[160px] sm:h-[220px] md:h-[280px]"
             >
               {/* Desktop */}
               <img

@@ -1,18 +1,30 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, ShoppingBag } from "lucide-react";
+import { Menu, Moon, ShoppingBag, Sun } from "lucide-react";
 import { Button } from "./ui/button";
 import MobileMenu from "./MobileMenu";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { applyTheme, readCurrentTheme, type ThemeMode } from "@/lib/theme";
 
 const BRAND_ICON = "/assets/branding/logo-headshop.png";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [highlightCartBadge, setHighlightCartBadge] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>("light");
   const { totalItems, setIsOpen } = useCart();
   const { user, logout } = useAuth();
+
+  const toggleTheme = () => {
+    const next: ThemeMode = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    applyTheme(next);
+  };
+
+  useEffect(() => {
+    setTheme(readCurrentTheme());
+  }, []);
 
   useEffect(() => {
     const handleCartAdded = (event: Event) => {
@@ -75,6 +87,18 @@ const Header = () => {
                   </Button>
                 </div>
               )}
+
+              {/* Botão tema — visível no mobile, destaque na home */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                aria-label={theme === "light" ? "Ativar modo noturno" : "Ativar modo claro"}
+                className="h-9 w-9 rounded-full border border-white/15 bg-white/8 text-header-foreground/90 transition hover:bg-white/15 hover:text-white sm:flex"
+              >
+                {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-rasta-yellow" />}
+              </Button>
 
               <Button
                 variant="ghost"

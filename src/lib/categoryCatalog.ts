@@ -9,7 +9,7 @@ export interface HeadshopCategory {
   image?: string | null;
 }
 
-export const HOME_CATEGORY_LIMIT = 10;
+export const HOME_CATEGORY_LIMIT = 5;
 
 export const HEADSHOP_CATEGORIES: HeadshopCategory[] = [
   { slug: "sedas", name: "Sedas", href: "/categoria/sedas", icon: Cigarette },

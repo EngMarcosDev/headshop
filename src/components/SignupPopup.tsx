@@ -361,11 +361,11 @@ const SignupPopup = () => {
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/70 z-40 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/65 z-[60] backdrop-blur-md"
         onClick={() => setIsOpen(false)}
       />
 
-      <div className="fixed top-1/2 left-1/2 z-50 w-[95%] max-w-[430px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border border-border/80 bg-card shadow-[0_32px_80px_-34px_rgba(18,14,10,0.78)]">
+      <div className="fixed top-1/2 left-1/2 z-[70] w-[95%] max-w-[430px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border border-border/80 bg-card shadow-[0_32px_80px_-34px_rgba(18,14,10,0.78)]">
         <div className="h-1.5 bg-gradient-to-r from-rasta-green via-rasta-yellow to-rasta-red" />
 
         <div className="bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_42%)] p-6">
