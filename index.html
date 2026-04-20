@@ -1,24 +1,35 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Abacaxita</title>
-    <meta name="description" content="Abacaxita Headshop - acessorios e kits selecionados." />
+    <meta name="description" content="Tudo para completar e confortar sua session." />
     <meta name="author" content="Abacaxita" />
-    
-    <link rel="icon" type="image/png" href="/assets/branding/pineapple-icon.png?v=3" />
-    <link rel="shortcut icon" href="/assets/branding/pineapple-icon.png?v=3" />
-    <link rel="apple-touch-icon" href="/assets/branding/pineapple-icon.png?v=3" />
+
+    <!-- Favicon: ico para desktop/Google, PNG para mobile/Apple -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=4" />
+    <link rel="shortcut icon" href="/favicon.ico?v=4" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/branding/pineapple-icon.png?v=4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/branding/pineapple-icon.png?v=4" />
 
     <meta property="og:title" content="Abacaxita" />
-    <meta property="og:description" content="Abacaxita Headshop - acessorios e kits selecionados." />
+    <meta property="og:description" content="Tudo para completar e confortar sua session." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image" content="/assets/branding/pineapple-icon.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@bacaxita" />
-    <meta name="twitter:image" content="/og-image.png" />
+    <meta name="twitter:image" content="/assets/branding/pineapple-icon.png" />
+    <!-- Tema aplicado antes do React para evitar flash de tela branca ao abrir nova aba -->
+    <script>
+      try {
+        var t = localStorage.getItem('bacaxita_theme');
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
   </head>
 
   <body>

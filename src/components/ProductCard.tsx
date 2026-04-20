@@ -38,6 +38,7 @@ const ProductCard = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [justAdded, setJustAdded] = useState(false);
+  const [stockLimit, setStockLimit] = useState(false);
 
   const cartItem = items.find((item) => item.id === id);
   const quantity = cartItem?.quantity || 0;
@@ -78,14 +79,15 @@ const ProductCard = ({
   };
 
   const handleAddToCart = () => {
-    addItem({ id, name, price, image: primaryImage, category });
-    setJustAdded(true);
-    emitCartAdded();
+    const ok = addItem({ id, name, price, image: primaryImage, category }, stock ?? undefined);
+    if (ok) { setJustAdded(true); emitCartAdded(); }
+    else { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
   };
 
   const handleIncrement = () => {
-    addItem({ id, name, price, image: primaryImage, category });
-    emitCartAdded();
+    const ok = addItem({ id, name, price, image: primaryImage, category }, stock ?? undefined);
+    if (ok) { emitCartAdded(); }
+    else { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
   };
 
   const handleDecrement = () => {
@@ -111,26 +113,10 @@ const ProductCard = ({
 
   return (
     <div className={`card-product group flex h-full min-h-[248px] flex-col p-2.5 sm:p-3 md:min-h-[270px] md:p-4 ${outOfStock ? "opacity-70" : ""}`}>
-      {(isNew || outOfStock || lastUnits || lowStock) && (
-        <div className="mb-1.5 flex items-center gap-1.5 sm:mb-2">
-          {outOfStock && (
-            <span className="rounded-full bg-neutral-400/20 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">
-              Indisponível
-            </span>
-          )}
-          {lastUnits && !outOfStock && (
-            <span className="rounded-full bg-rasta-red/15 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-rasta-red">
-              Última{stock === 1 ? "" : "s"} {stock} unidade{stock === 1 ? "" : "s"}
-            </span>
-          )}
-          {lowStock && !outOfStock && !lastUnits && (
-            <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-amber-600">
-              Últimas unidades
-            </span>
-          )}
-          {isNew && !outOfStock && (
-            <span className="badge-new">Lancamento</span>
-          )}
+      {/* Badge "Lançamento" fica no topo — único que aparece acima da imagem */}
+      {isNew && !outOfStock && (
+        <div className="mb-1.5 sm:mb-2">
+          <span className="badge-new">Lancamento</span>
         </div>
       )}
 
@@ -174,6 +160,7 @@ const ProductCard = ({
           >
             {name}
           </h3>
+          {/* Desconto e preço — badges de estoque ficam logo após, nunca sobrepõem */}
           {hasDiscount ? (
             <div className="mt-1.5 flex items-center gap-2 md:mt-2">
               <span className="text-[11px] text-muted-foreground line-through sm:text-xs">{formattedOriginalPrice}</span>
@@ -183,8 +170,24 @@ const ProductCard = ({
             </div>
           ) : null}
           <p className="mt-1.5 text-base font-bold text-accent dark:text-white sm:text-lg md:mt-2 md:text-xl">{formattedPrice}</p>
+          {/* Badge de disponibilidade — abaixo do preço, nunca acima da imagem */}
+          {outOfStock && (
+            <span className="mt-1 inline-block rounded-full bg-neutral-400/20 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-neutral-500 dark:text-neutral-400">
+              Indisponível
+            </span>
+          )}
+          {(lastUnits || lowStock) && !outOfStock && (
+            <span className="mt-1 inline-block rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-600">
+              Últimas unidades
+            </span>
+          )}
         </div>
         <div className="mt-auto">
+          {stockLimit && (
+            <p className="mb-1 text-[9px] font-semibold text-rasta-red sm:text-[10px]">
+              Limite de estoque atingido
+            </p>
+          )}
           {outOfStock ? (
             <Button
               size="sm"

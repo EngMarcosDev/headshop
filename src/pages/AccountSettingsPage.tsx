@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, LogOut } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 
 const AccountSettingsPage = () => {
-  const { user, updateProfile, changePassword, refreshProfile } = useAuth();
+  const navigate = useNavigate();
+  const { user, updateProfile, changePassword, refreshProfile, logout } = useAuth();
 
   // ── Profile form
   const [profileName, setProfileName] = useState(user?.name ?? "");
@@ -95,6 +97,16 @@ const AccountSettingsPage = () => {
 
       <main className="flex-1">
         <div className="max-w-2xl mx-auto px-4 py-10">
+          {/* Back button */}
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </button>
+
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
@@ -104,7 +116,7 @@ const AccountSettingsPage = () => {
               <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
             </div>
             <Link to="/historico" className="text-sm text-muted-foreground hover:text-foreground">
-              Historico
+              Histórico
             </Link>
           </div>
 
@@ -173,7 +185,7 @@ const AccountSettingsPage = () => {
           </section>
 
           {/* ── Change password section ───────────────────────────── */}
-          <section className="rounded-2xl border border-border bg-card shadow-sm">
+          <section className="mb-6 rounded-2xl border border-border bg-card shadow-sm">
             <div className="border-b border-border px-6 py-4">
               <h2 className="text-base font-semibold text-foreground">Alterar Senha</h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
@@ -252,6 +264,25 @@ const AccountSettingsPage = () => {
                 </button>
               </div>
             </form>
+          </section>
+          {/* ── Logout section ───────────────────────────────────── */}
+          <section className="rounded-2xl border border-border bg-card shadow-sm">
+            <div className="border-b border-border px-6 py-4">
+              <h2 className="text-base font-semibold text-foreground">Sair da Conta</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Você será desconectado deste dispositivo.
+              </p>
+            </div>
+            <div className="flex justify-end px-6 py-5">
+              <button
+                type="button"
+                onClick={() => { logout(); navigate("/"); }}
+                className="inline-flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-5 py-2 text-sm font-semibold text-destructive shadow-sm transition hover:bg-destructive/20"
+              >
+                <LogOut className="h-4 w-4" />
+                Sair da conta
+              </button>
+            </div>
           </section>
         </div>
       </main>
