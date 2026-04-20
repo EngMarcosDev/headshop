@@ -51,7 +51,10 @@ const CategoryPage = () => {
     refetchOnWindowFocus: false,
   });
 
-  const products = productsQuery.data ?? [];
+  // Oculta produtos com estoque zerado (stockQty = 0); null = sem limite de estoque
+  const products = (productsQuery.data ?? []).filter(
+    (p) => p.stockQty === null || p.stockQty === undefined || p.stockQty > 0
+  );
 
   const subcategoryOptions = useMemo(() => {
     const optionMap = new Map<string, string>();

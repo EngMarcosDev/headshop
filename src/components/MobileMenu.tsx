@@ -12,7 +12,7 @@ interface MobileMenuProps {
 type MenuAction = { name: string; type: "route"; href: string };
 
 const menuLinks: MenuAction[] = [
-  { name: "Início", type: "route", href: "/" },
+  { name: "Inicio", type: "route", href: "/" },
   { name: "Produtos", type: "route", href: "/produtos" },
   { name: "Sobre", type: "route", href: "/sobre" },
   { name: "Contato", type: "route", href: "/contato" },
@@ -24,12 +24,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const links: MenuAction[] = [
     ...menuLinks,
-    ...(user
-      ? [
-          { name: "Histórico de Compras", type: "route" as const, href: "/historico" },
-          { name: "Minha Conta", type: "route" as const, href: "/conta/configuracoes" },
-        ]
-      : []),
+    ...(user ? [{ name: "Historico de Compras", type: "route" as const, href: "/historico" }] : []),
   ];
   const erpLoginUrl = import.meta.env.VITE_ERP_URL || "https://erp.bacaxita.com.br/login";
 
@@ -157,16 +152,11 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                 }}
                 className="w-full rounded-lg border border-rasta-yellow/35 bg-rasta-yellow/10 px-4 py-3 text-left text-base font-semibold text-rasta-yellow transition-all hover:bg-rasta-yellow/20 hover:text-white"
               >
-                Abacaxita ERP
+                ERP Bacaxita
               </button>
             </div>
           )}
         </nav>
-
-        {/* Faded pineapple footer icon */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none select-none opacity-[0.07]">
-          <img src="/assets/branding/pineapple-icon.png" alt="" aria-hidden="true" className="w-36 h-36 object-contain brightness-0 invert" />
-        </div>
 
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rasta-green via-rasta-yellow to-rasta-red" />
       </div>

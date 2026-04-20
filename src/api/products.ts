@@ -103,8 +103,6 @@ const normalizeProduct = (value: any): Product => {
     subcategory: typeof value?.subcategory === "string" ? value.subcategory : undefined,
     material: typeof value?.material === "string" ? value.material : undefined,
     brand: typeof value?.brand === "string" ? value.brand : undefined,
-    stockQty: value?.stockQty != null ? Number(value.stockQty) : null,
-    minStock: value?.minStock != null ? Number(value.minStock) : null,
   };
 };
 

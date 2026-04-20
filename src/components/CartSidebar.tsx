@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Minus, Plus, Trash2, ShoppingBag, AlertCircle, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -7,10 +7,23 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const CartSidebar = () => {
   const navigate = useNavigate();
-  const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
+  const { items, addItem, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [stockLimitId, setStockLimitId] = useState<number | null>(null);
+  const limitTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+
+  const handleIncrement = (itemId: number) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    const ok = addItem({ id: item.id, name: item.name, price: item.price, image: item.image, category: item.category, stockQty: item.stockQty });
+    if (!ok) {
+      setStockLimitId(itemId);
+      if (limitTimerRef.current) window.clearTimeout(limitTimerRef.current);
+      limitTimerRef.current = window.setTimeout(() => setStockLimitId(null), 2500);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -80,8 +93,9 @@ const CartSidebar = () => {
                       </button>
                       <span className="w-6 text-center text-xs font-bold">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="flex h-6 w-6 items-center justify-center rounded border border-border bg-background hover:bg-muted"
+                        onClick={() => handleIncrement(item.id)}
+                        className="flex h-6 w-6 items-center justify-center rounded border border-border bg-background hover:bg-muted disabled:opacity-40"
+                        disabled={typeof item.stockQty === "number" && item.quantity >= item.stockQty}
                       >
                         <Plus className="h-3 w-3" />
                       </button>
@@ -92,6 +106,11 @@ const CartSidebar = () => {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
+                    {stockLimitId === item.id && (
+                      <p className="mt-1 text-[10px] font-semibold text-rasta-red">
+                        Ops! Você atingiu o limite disponível em estoque.
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

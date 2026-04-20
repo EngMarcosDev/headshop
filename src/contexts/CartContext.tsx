@@ -7,6 +7,7 @@ export interface CartItem {
   price: number;
   image: string;
   category?: string;
+  stockQty?: number | null; // null = sem limite; number = limite real do estoque
   quantity: number;
 }
 
@@ -72,11 +73,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [cartStorageKey, user?.email]);
 
   const addItem = (newItem: Omit<CartItem, "quantity">, maxQty?: number): boolean => {
+    // Prioridade: maxQty explícito → stockQty do próprio item → sem limite
+    const effectiveMax = maxQty ?? (typeof newItem.stockQty === "number" ? newItem.stockQty : undefined);
     let allowed = true;
     setItems((prev) => {
       const existing = prev.find((item) => item.id === newItem.id);
       const currentQty = existing ? existing.quantity : 0;
-      if (maxQty != null && currentQty >= maxQty) {
+      if (effectiveMax != null && currentQty >= effectiveMax) {
         allowed = false;
         return prev; // não adiciona, estoque esgotado
       }

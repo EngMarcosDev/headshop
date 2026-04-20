@@ -79,13 +79,13 @@ const ProductCard = ({
   };
 
   const handleAddToCart = () => {
-    const ok = addItem({ id, name, price, image: primaryImage, category }, stock ?? undefined);
+    const ok = addItem({ id, name, price, image: primaryImage, category, stockQty: stock }, stock ?? undefined);
     if (ok) { setJustAdded(true); emitCartAdded(); }
     else { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
   };
 
   const handleIncrement = () => {
-    const ok = addItem({ id, name, price, image: primaryImage, category }, stock ?? undefined);
+    const ok = addItem({ id, name, price, image: primaryImage, category, stockQty: stock }, stock ?? undefined);
     if (ok) { emitCartAdded(); }
     else { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
   };
@@ -185,7 +185,7 @@ const ProductCard = ({
         <div className="mt-auto">
           {stockLimit && (
             <p className="mb-1 text-[9px] font-semibold text-rasta-red sm:text-[10px]">
-              Limite de estoque atingido
+              Ops! Você atingiu o limite disponível em estoque.
             </p>
           )}
           {outOfStock ? (

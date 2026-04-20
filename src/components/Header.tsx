@@ -47,15 +47,15 @@ const Header = () => {
     <>
       <header className="w-full">
         <nav className="bg-header">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
-            <Link to="/" className="flex items-center gap-2 text-lg font-display font-bold text-header-foreground tracking-[0.2em] sm:text-2xl sm:tracking-widest hover:opacity-85 transition-opacity">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-sm sm:h-9 sm:w-9">
-                <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-7 w-7 rounded-full object-cover ring-1 ring-white/40 sm:h-8 sm:w-8" />
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-1.5 sm:px-4 sm:py-3">
+            <Link to="/" className="flex items-center gap-1.5 sm:gap-2 text-base font-display font-bold text-header-foreground tracking-[0.18em] sm:text-2xl sm:tracking-widest hover:opacity-85 transition-opacity">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-sm sm:h-9 sm:w-9">
+                <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-6 w-6 rounded-full object-cover ring-1 ring-white/40 sm:h-8 sm:w-8" />
               </span>
               <span>ABACAXITA</span>
             </Link>
 
-            <div className="flex items-center gap-0.5 sm:gap-1">
+            <div className="flex items-center gap-0 sm:gap-1">
               {user?.email ? (
                 <Link
                   to="/conta/configuracoes"
@@ -92,7 +92,7 @@ const Header = () => {
                 size="icon"
                 onClick={toggleTheme}
                 aria-label={theme === "light" ? "Ativar modo noturno" : "Ativar modo claro"}
-                className="h-9 w-9 rounded-full border border-white/15 bg-white/8 text-header-foreground/90 transition hover:bg-white/15 hover:text-white sm:flex"
+                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-white/15 bg-white/8 text-header-foreground/90 transition hover:bg-white/15 hover:text-white sm:flex"
               >
                 {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-rasta-yellow" />}
               </Button>
@@ -101,7 +101,7 @@ const Header = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(true)}
-                className="relative h-9 w-9 text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground"
+                className="relative h-8 w-8 sm:h-9 sm:w-9 text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground"
               >
                 <ShoppingBag className="w-5 h-5" />
                 {totalItems > 0 && (
@@ -119,7 +119,7 @@ const Header = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setMenuOpen(true)}
-                className="h-9 w-9 text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground"
+                className="h-8 w-8 sm:h-9 sm:w-9 text-header-foreground/80 hover:bg-white/5 hover:text-header-foreground"
               >
                 <Menu className="w-5 h-5" />
               </Button>

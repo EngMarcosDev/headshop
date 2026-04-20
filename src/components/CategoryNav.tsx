@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStoreCategories } from "@/api/categories";
 import { HEADSHOP_CATEGORIES, HOME_CATEGORY_LIMIT, buildCategoryFromApi } from "@/lib/categoryCatalog";
 
 const CategoryNav = () => {
-  const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set());
   const categoriesQuery = useQuery({
     queryKey: ["categories", "site-nav"],
     queryFn: fetchStoreCategories,
@@ -36,19 +35,18 @@ const CategoryNav = () => {
               to={category.href}
                 className="group flex w-[76px] shrink-0 flex-col items-center gap-1.5 sm:w-[84px] md:w-auto md:shrink md:gap-2"
             >
-              {/* Ícone sempre renderizado imediatamente; imagem carrega por cima quando disponível */}
-              <div className="category-circle relative h-11 w-11 sm:h-[3.25rem] sm:w-[3.25rem] md:h-16 md:w-16 lg:h-18 lg:w-18 overflow-hidden">
-                <category.icon className="h-[18px] w-[18px] text-primary transition-colors group-hover:text-accent sm:h-[22px] sm:w-[22px] md:h-7 md:w-7" />
-                {category.image && !failedImages.has(category.slug) ? (
+              <div className="category-circle h-11 w-11 sm:h-[3.25rem] sm:w-[3.25rem] md:h-16 md:w-16 lg:h-18 lg:w-18 overflow-hidden">
+                {category.image ? (
                   <img
                     src={category.image}
                     alt={category.name}
-                    className="absolute inset-0 h-full w-full object-cover"
-                    loading="eager"
+                    className="h-full w-full object-cover"
+                    loading="lazy"
                     decoding="async"
-                    onError={() => setFailedImages((prev) => new Set(prev).add(category.slug))}
                   />
-                ) : null}
+                ) : (
+                  <category.icon className="h-[18px] w-[18px] text-primary transition-colors group-hover:text-accent sm:h-[22px] sm:w-[22px] md:h-7 md:w-7" />
+                )}
               </div>
                 <span className="text-center text-[10px] font-medium text-foreground/80 transition-colors group-hover:text-accent sm:text-[11px] md:text-sm">
                 {category.name}

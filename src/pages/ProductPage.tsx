@@ -234,7 +234,7 @@ const ProductPage = () => {
                 )}
 
                 {stockLimit && (
-                  <p className="mt-2 text-xs font-semibold text-rasta-red">Limite de estoque atingido</p>
+                  <p className="mt-2 text-xs font-semibold text-rasta-red">Ops! Você atingiu o limite disponível em estoque.</p>
                 )}
 
                 {outOfStock ? (
@@ -253,6 +253,7 @@ const ProductPage = () => {
                         price: product.price,
                         image: product.image,
                         category: product.category,
+                        stockQty: stock,
                       }, stock ?? undefined);
                       if (!ok) { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
                     }}
@@ -286,6 +287,7 @@ const ProductPage = () => {
                             price: product.price,
                             image: product.image,
                             category: product.category,
+                            stockQty: stock,
                           }, stock ?? undefined);
                           if (!ok) { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
                         }}

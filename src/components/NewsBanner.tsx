@@ -8,7 +8,7 @@ interface NewsBannerProps {
 }
 
 const AUTO_PLAY_MS = 5000;
-const TRANSITION_MS = 480;
+const TRANSITION_MS = 700;
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
@@ -76,7 +76,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
     return (
       <section className="news-banner">
         <div className="overflow-hidden border-y border-border/60 bg-muted/60 animate-pulse">
-          <div className="w-full aspect-[4/3] sm:aspect-[16/9] md:aspect-[16/9]" />
+          <div className="min-h-[260px] w-full sm:min-h-[320px] md:min-h-[420px]" />
         </div>
       </section>
     );
@@ -90,12 +90,17 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
 
   return (
     <section className="news-banner">
+      {/* Section title — shown whenever there are active banner slides */}
+      <div className="px-4 pt-5 pb-2 sm:px-6 md:px-10 lg:px-16">
+        <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Novidades</h2>
+      </div>
+
       <div className="relative overflow-hidden border-y border-border/70 bg-card shadow-[0_24px_70px_-42px_rgba(55,32,12,0.55)]">
         <div
           className="flex"
           style={{
             transform: `translateX(-${index * 100}%)`,
-            transition: transitioning ? `transform ${TRANSITION_MS}ms cubic-bezier(0.4, 0, 0.2, 1)` : "none",
+            transition: transitioning ? `transform ${TRANSITION_MS}ms ease-out` : "none",
           }}
           onTransitionEnd={() => {
             // When we land on the virtual clone of slide[0], snap back instantly
@@ -109,7 +114,7 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
           {extended.map((slide, i) => (
             <article
               key={`${slide.id}-${i}`}
-              className="relative w-full flex-shrink-0 h-[160px] sm:h-[220px] md:h-[280px]"
+              className="relative min-h-[260px] w-full flex-shrink-0 sm:min-h-[320px] md:min-h-[420px] lg:min-h-[500px]"
             >
               {/* Desktop */}
               <img
@@ -128,26 +133,13 @@ const NewsBanner = ({ products, isLoading = false, isError = false }: NewsBanner
                 decoding="async"
               />
 
-              {/* "Novidades" badge — top left */}
-              <div className="absolute top-0 left-0 z-10 p-3 sm:p-4 md:p-6">
-                <span className="w-fit rounded-full bg-black/40 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/90 backdrop-blur-sm sm:text-[10px]">
-                  Novidades
-                </span>
-              </div>
-
-              {/* Bottom: nome + preço */}
-              {(slide.name || (slide.showPrice && slide.price > 0)) ? (
-                <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/60 to-transparent px-4 py-5 sm:px-6 sm:py-6 md:px-10 md:py-8 lg:px-16 lg:py-10">
-                  {slide.name && (
-                    <p className="mb-2 text-base font-bold leading-tight text-white drop-shadow sm:text-xl md:text-2xl lg:text-3xl">
-                      {slide.name}
-                    </p>
-                  )}
-                  {slide.showPrice && slide.price > 0 ? (
+              {slide.showPrice && slide.price > 0 ? (
+                <div className="relative z-10 flex h-full items-end">
+                  <div className="w-full px-4 py-5 sm:px-6 sm:py-6 md:px-10 md:py-8 lg:px-16 lg:py-10">
                     <div className="inline-flex w-fit items-center rounded-2xl border border-black/5 bg-white/95 px-4 py-2 text-sm font-semibold text-neutral-900 shadow-xl">
                       {formatCurrency(slide.price)}
                     </div>
-                  ) : null}
+                  </div>
                 </div>
               ) : null}
             </article>

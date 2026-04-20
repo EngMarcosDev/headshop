@@ -22,10 +22,10 @@ const CANCELLED_ORDER_STATUSES = new Set(["CANCELLED", "CANCELADO", "REFUNDED"])
 const BRAND_ICON = "/assets/branding/pineapple-icon.png";
 
 const methodDescriptions: Record<CheckoutMethod, string> = {
-  credit: "Você será redirecionado para o checkout do Mercado Pago e poderá pagar no cartão de crédito.",
-  debit: "Você será redirecionado para o checkout do Mercado Pago e poderá pagar no cartão de débito.",
-  pix: "O PIX será gerado aqui mesmo com QR Code e código copia e cola.",
-  boleto: "Você será redirecionado para o checkout do Mercado Pago e poderá pagar via boleto.",
+  credit: "Voce sera redirecionado para o checkout do Mercado Pago e podera pagar no cartao de credito.",
+  debit: "Voce sera redirecionado para o checkout do Mercado Pago e podera pagar no cartao de debito.",
+  pix: "O PIX sera gerado aqui mesmo com QR Code e codigo copia e cola.",
+  boleto: "Voce sera redirecionado para o checkout do Mercado Pago e podera pagar via boleto.",
 };
 
 const normalizeCartItem = (item: any) => ({
@@ -234,7 +234,7 @@ const CheckoutPage = () => {
           setPixDiagnostic({
             checked: true,
             available: false,
-            message: payload?.error || "Não foi possível validar PIX no Mercado Pago.",
+            message: payload?.error || "Nao foi possivel validar PIX no Mercado Pago.",
           });
           return;
         }
@@ -243,7 +243,7 @@ const CheckoutPage = () => {
         setPixDiagnostic({
           checked: true,
           available,
-          message: available ? undefined : "PIX não apareceu como ativo na conta Mercado Pago.",
+          message: available ? undefined : "PIX nao apareceu como ativo na conta Mercado Pago.",
         });
       } catch {
         setPixDiagnostic({
@@ -263,22 +263,22 @@ const CheckoutPage = () => {
     const activeTotal = activeItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     if (activeItems.length === 0) {
-      setError("Sua sacola está vazia.");
-      notifyAbacaxiError({ message: "Sua sacola está vazia. Adicione itens para continuar." });
+      setError("Sua sacola esta vazia.");
+      notifyAbacaxiError({ message: "Sua sacola esta vazia. Adicione itens para continuar." });
       return;
     }
 
     if (!user?.email) {
-      setError("Faça login para continuar.");
-      notifyAbacaxiError({ message: "Para finalizar, você precisa entrar com sua conta." });
+      setError("Faca login para continuar.");
+      notifyAbacaxiError({ message: "Para finalizar, voce precisa entrar com sua conta." });
       window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { mode: "login" } }));
       return;
     }
 
     if (selectedMethod === "pix" && pixDiagnostic.checked && !pixDiagnostic.available) {
-      setError(pixDiagnostic.message || "PIX indisponível no momento.");
+      setError(pixDiagnostic.message || "PIX indisponivel no momento.");
       notifyAbacaxiError({
-        message: pixDiagnostic.message || "O PIX está temporariamente indisponível. Tente novamente em instantes.",
+        message: pixDiagnostic.message || "O PIX esta temporariamente indisponivel. Tente novamente em instantes.",
       });
       return;
     }
@@ -337,7 +337,7 @@ const CheckoutPage = () => {
 
         const pixPayload = (await pixResponse.json().catch(() => null)) as PixPayload | ApiErrorPayload;
         if (!pixResponse.ok) {
-          throw new Error(extractApiErrorMessage(pixPayload as ApiErrorPayload, "Não foi possível gerar PIX."));
+          throw new Error(extractApiErrorMessage(pixPayload as ApiErrorPayload, "Nao foi possivel gerar PIX."));
         }
 
         if (!pixPayload?.qrCode || !pixPayload?.qrCodeBase64) {
@@ -375,14 +375,14 @@ const CheckoutPage = () => {
       const preferencePayload = await preferenceResponse.json();
       const checkoutUrl = preferencePayload?.init_point || preferencePayload?.sandbox_init_point;
       if (!checkoutUrl) {
-        throw new Error("URL de pagamento indisponível.");
+        throw new Error("URL de pagamento indisponivel.");
       }
 
       clearCart();
       window.location.href = checkoutUrl;
     } catch (checkoutError) {
       const message =
-        checkoutError instanceof Error ? checkoutError.message : "Não foi possível iniciar o pagamento.";
+        checkoutError instanceof Error ? checkoutError.message : "Nao foi possivel iniciar o pagamento.";
       setError(message);
       notifyAbacaxiError({ message });
     } finally {
@@ -395,8 +395,8 @@ const CheckoutPage = () => {
     try {
       await navigator.clipboard.writeText(pixPayment.qrCode);
     } catch {
-      setError("Não foi possível copiar o código PIX.");
-      notifyAbacaxiError({ message: "Não conseguimos copiar o código PIX agora. Tente novamente." });
+      setError("Nao foi possivel copiar o codigo PIX.");
+      notifyAbacaxiError({ message: "Nao conseguimos copiar o codigo PIX agora. Tente novamente." });
     }
   };
 
@@ -426,7 +426,7 @@ const CheckoutPage = () => {
 
         {checkoutItems.length === 0 && !pixPayment ? (
           <div className="rounded-xl border border-border bg-card p-8 text-center">
-            <p className="mb-4 text-muted-foreground">Sua sacola está vazia.</p>
+            <p className="mb-4 text-muted-foreground">Sua sacola esta vazia.</p>
             <Button onClick={() => navigate("/")}>Voltar as compras</Button>
           </div>
         ) : (
@@ -446,10 +446,10 @@ const CheckoutPage = () => {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-amber-800 sm:text-base">
-                        Faltam só alguns passos para finalizar seu pedido.
+                        Faltam so alguns passos para finalizar seu pedido.
                       </p>
                       <p className="mt-1 text-xs leading-5 text-amber-700 sm:text-sm">
-                        Gere o QR Code, conclua o pagamento no app do banco e aguarde a confirmação automática.
+                        Gere o QR Code, conclua o pagamento no app do banco e aguarde a confirmacao automatica.
                       </p>
                     </div>
                   </div>
@@ -459,7 +459,7 @@ const CheckoutPage = () => {
               {selectedMethod === "pix" && pixDiagnostic.checked && !pixDiagnostic.available ? (
                 <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700">
                   <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                  <span>{pixDiagnostic.message || "PIX indisponível no momento."}</span>
+                  <span>{pixDiagnostic.message || "PIX indisponivel no momento."}</span>
                 </div>
               ) : null}
 
@@ -500,7 +500,7 @@ const CheckoutPage = () => {
                   </div>
 
                   <div className="rounded-2xl border border-border bg-muted/40 p-3">
-                    <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Código copia e cola</p>
+                    <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Codigo copia e cola</p>
                     <p className="break-all text-xs text-foreground">{pixPayment.qrCode}</p>
                     <Button
                       type="button"
@@ -510,7 +510,7 @@ const CheckoutPage = () => {
                       disabled={pixExpired}
                     >
                       <Copy className="mr-2 h-4 w-4" />
-                      Copiar código PIX
+                      Copiar codigo PIX
                     </Button>
                   </div>
                 </div>
