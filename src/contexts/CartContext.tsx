@@ -7,12 +7,13 @@ export interface CartItem {
   price: number;
   image: string;
   category?: string;
+  stockQty?: number | null; // null = sem limite; number = limite real do estoque
   quantity: number;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity">, maxQty?: number) => boolean;
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
@@ -71,9 +72,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [cartStorageKey, user?.email]);
 
-  const addItem = (newItem: Omit<CartItem, "quantity">) => {
+  const addItem = (newItem: Omit<CartItem, "quantity">, maxQty?: number): boolean => {
+    // Prioridade: maxQty explícito → stockQty do próprio item → sem limite
+    const effectiveMax = maxQty ?? (typeof newItem.stockQty === "number" ? newItem.stockQty : undefined);
+    let allowed = true;
     setItems((prev) => {
       const existing = prev.find((item) => item.id === newItem.id);
+      const currentQty = existing ? existing.quantity : 0;
+      if (effectiveMax != null && currentQty >= effectiveMax) {
+        allowed = false;
+        return prev; // não adiciona, estoque esgotado
+      }
       if (existing) {
         return prev.map((item) =>
           item.id === newItem.id
@@ -83,6 +92,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return [...prev, { ...newItem, quantity: 1 }];
     });
+    return allowed;
   };
 
   const removeItem = (id: number) => {
