@@ -16,8 +16,6 @@ interface ProductCardProps {
   gallery?: string[];
   category?: string;
   isNew?: boolean;
-  stockQty?: number | null;
-  minStock?: number | null;
 }
 
 const ProductCard = ({
@@ -31,25 +29,15 @@ const ProductCard = ({
   gallery,
   category,
   isNew = false,
-  stockQty,
-  minStock = 10,
 }: ProductCardProps) => {
   const { addItem, items, updateQuantity } = useCart();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [justAdded, setJustAdded] = useState(false);
-  const [stockLimit, setStockLimit] = useState(false);
 
   const cartItem = items.find((item) => item.id === id);
   const quantity = cartItem?.quantity || 0;
   const primaryImage = gallery?.[0] || image;
-
-  // ── Estoque ────────────────────────────────────────────────────────────────
-  const stock = typeof stockQty === "number" ? stockQty : null;
-  const threshold = typeof minStock === "number" ? minStock : 10;
-  const outOfStock = stock !== null && stock <= 0;
-  const lastUnits = stock !== null && stock > 0 && stock <= 2;
-  const lowStock = stock !== null && stock > 2 && stock <= threshold;
   const secondaryImage = gallery?.[1] || null;
   const hasDiscount =
     discountActive === true &&
@@ -79,15 +67,14 @@ const ProductCard = ({
   };
 
   const handleAddToCart = () => {
-    const ok = addItem({ id, name, price, image: primaryImage, category, stockQty: stock }, stock ?? undefined);
-    if (ok) { setJustAdded(true); emitCartAdded(); }
-    else { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
+    addItem({ id, name, price, image: primaryImage, category });
+    setJustAdded(true);
+    emitCartAdded();
   };
 
   const handleIncrement = () => {
-    const ok = addItem({ id, name, price, image: primaryImage, category, stockQty: stock }, stock ?? undefined);
-    if (ok) { emitCartAdded(); }
-    else { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
+    addItem({ id, name, price, image: primaryImage, category });
+    emitCartAdded();
   };
 
   const handleDecrement = () => {
@@ -112,9 +99,8 @@ const ProductCard = ({
   }, [justAdded]);
 
   return (
-    <div className={`card-product group flex h-full min-h-[248px] flex-col p-2.5 sm:p-3 md:min-h-[270px] md:p-4 ${outOfStock ? "opacity-70" : ""}`}>
-      {/* Badge "Lançamento" fica no topo — único que aparece acima da imagem */}
-      {isNew && !outOfStock && (
+    <div className="card-product group flex h-full min-h-[248px] flex-col p-2.5 sm:p-3 md:min-h-[270px] md:p-4">
+      {isNew && (
         <div className="mb-1.5 sm:mb-2">
           <span className="badge-new">Lancamento</span>
         </div>
@@ -160,7 +146,6 @@ const ProductCard = ({
           >
             {name}
           </h3>
-          {/* Desconto e preço — badges de estoque ficam logo após, nunca sobrepõem */}
           {hasDiscount ? (
             <div className="mt-1.5 flex items-center gap-2 md:mt-2">
               <span className="text-[11px] text-muted-foreground line-through sm:text-xs">{formattedOriginalPrice}</span>
@@ -170,33 +155,9 @@ const ProductCard = ({
             </div>
           ) : null}
           <p className="mt-1.5 text-base font-bold text-accent dark:text-white sm:text-lg md:mt-2 md:text-xl">{formattedPrice}</p>
-          {/* Badge de disponibilidade — abaixo do preço, nunca acima da imagem */}
-          {outOfStock && (
-            <span className="mt-1 inline-block rounded-full bg-neutral-400/20 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-neutral-500 dark:text-neutral-400">
-              Indisponível
-            </span>
-          )}
-          {(lastUnits || lowStock) && !outOfStock && (
-            <span className="mt-1 inline-block rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-600">
-              Últimas unidades
-            </span>
-          )}
         </div>
         <div className="mt-auto">
-          {stockLimit && (
-            <p className="mb-1 text-[9px] font-semibold text-rasta-red sm:text-[10px]">
-              Ops! Você atingiu o limite disponível em estoque.
-            </p>
-          )}
-          {outOfStock ? (
-            <Button
-              size="sm"
-              disabled
-              className="h-8 w-full cursor-not-allowed bg-neutral-200 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400 dark:bg-neutral-700 dark:text-neutral-500"
-            >
-              Indisponível
-            </Button>
-          ) : quantity === 0 ? (
+          {quantity === 0 ? (
             <Button
               size="sm"
               onClick={handleAddToCart}

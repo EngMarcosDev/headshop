@@ -51,10 +51,7 @@ const CategoryPage = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Oculta produtos com estoque zerado (stockQty = 0); null = sem limite de estoque
-  const products = (productsQuery.data ?? []).filter(
-    (p) => p.stockQty === null || p.stockQty === undefined || p.stockQty > 0
-  );
+  const products = productsQuery.data ?? [];
 
   const subcategoryOptions = useMemo(() => {
     const optionMap = new Map<string, string>();
@@ -114,9 +111,9 @@ const CategoryPage = () => {
         <Header />
         <main className="mx-auto flex w-full max-w-5xl flex-1 items-center justify-center px-4 py-10">
           <div className="text-center">
-            <h1 className="text-2xl font-display font-bold text-foreground">Categoria não encontrada</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">Categoria nao encontrada</h1>
             <Link to="/" className="mt-3 inline-block text-sm text-accent hover:underline">
-              Voltar ao início
+              Voltar ao inicio
             </Link>
           </div>
         </main>
@@ -147,7 +144,7 @@ const CategoryPage = () => {
             className="mb-5 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Voltar ao início
+            Voltar ao inicio
           </Link>
 
           <section className="space-y-4 rounded-xl border border-border bg-card p-4 md:p-5">
@@ -181,7 +178,7 @@ const CategoryPage = () => {
                   Subcategorias
                 </p>
                 <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-2 py-1">
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Preço</span>
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Preco</span>
                   <Select
                     value={priceSort}
                     onValueChange={(value) => setPriceSort(value as "none" | "asc" | "desc")}
@@ -191,8 +188,8 @@ const CategoryPage = () => {
                     </SelectTrigger>
                     <SelectContent className="bg-card text-foreground">
                       <SelectItem value="none">Sem ordem</SelectItem>
-                      <SelectItem value="asc">Menor preço</SelectItem>
-                      <SelectItem value="desc">Maior preço</SelectItem>
+                      <SelectItem value="asc">Menor preco</SelectItem>
+                      <SelectItem value="desc">Maior preco</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -227,7 +224,7 @@ const CategoryPage = () => {
           {productsQuery.isLoading ? (
             <p className="mt-6 text-sm text-muted-foreground">Carregando produtos...</p>
           ) : productsQuery.isError ? (
-            <p className="mt-6 text-sm text-muted-foreground">Não foi possível carregar os produtos.</p>
+            <p className="mt-6 text-sm text-muted-foreground">Nao foi possivel carregar os produtos.</p>
           ) : filteredProducts.length === 0 ? (
             <div className="mt-8 rounded-xl border border-border bg-card p-8 text-center">
               <p className="text-muted-foreground">Nenhum produto encontrado para essa subcategoria.</p>
@@ -251,8 +248,6 @@ const CategoryPage = () => {
                     gallery={product.gallery}
                     category={product.category || normalizedSlug}
                     isNew={product.isNew}
-                    stockQty={product.stockQty}
-                    minStock={product.minStock}
                   />
                 </div>
               ))}

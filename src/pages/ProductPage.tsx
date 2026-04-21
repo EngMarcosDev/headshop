@@ -72,12 +72,6 @@ const ProductPage = () => {
 
   const cartItem = items.find((item) => item.id === product?.id);
   const quantity = cartItem?.quantity || 0;
-  const stock = product && typeof product.stockQty === "number" ? product.stockQty : null;
-  const threshold = product && typeof product.minStock === "number" ? product.minStock : 10;
-  const outOfStock = stock !== null && stock <= 0;
-  const lastUnits = stock !== null && stock > 0 && stock <= 2;
-  const lowStock = stock !== null && stock > 2 && stock <= threshold;
-  const [stockLimit, setStockLimit] = useState(false);
   const hasDiscount =
     product?.discountActive === true &&
     typeof product.originalPrice === "number" &&
@@ -221,42 +215,17 @@ const ProductPage = () => {
                   <p className="text-3xl font-bold text-accent dark:text-white">{formatCurrency(product.price)}</p>
                 )}
 
-                {/* Badges de disponibilidade */}
-                {outOfStock && (
-                  <span className="mt-2 inline-block rounded-full bg-neutral-400/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                    Indisponível
-                  </span>
-                )}
-                {(lastUnits || lowStock) && !outOfStock && (
-                  <span className="mt-2 inline-block rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber-600">
-                    Últimas unidades
-                  </span>
-                )}
-
-                {stockLimit && (
-                  <p className="mt-2 text-xs font-semibold text-rasta-red">Ops! Você atingiu o limite disponível em estoque.</p>
-                )}
-
-                {outOfStock ? (
+                {quantity === 0 ? (
                   <Button
-                    disabled
-                    className="mt-4 h-11 w-full rounded-2xl cursor-not-allowed bg-neutral-200 text-neutral-400 dark:bg-neutral-700 dark:text-neutral-500"
-                  >
-                    Indisponível
-                  </Button>
-                ) : quantity === 0 ? (
-                  <Button
-                    onClick={() => {
-                      const ok = addItem({
+                    onClick={() =>
+                      addItem({
                         id: product.id,
                         name: product.name,
                         price: product.price,
                         image: product.image,
                         category: product.category,
-                        stockQty: stock,
-                      }, stock ?? undefined);
-                      if (!ok) { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
-                    }}
+                      })
+                    }
                     className="mt-4 h-11 w-full rounded-2xl bg-rasta-green text-white hover:bg-rasta-green/90"
                   >
                     <ShoppingBag className="mr-2 h-4 w-4" />
@@ -280,17 +249,15 @@ const ProductPage = () => {
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8 text-rasta-green hover:bg-rasta-green/20"
-                        onClick={() => {
-                          const ok = addItem({
+                        onClick={() =>
+                          addItem({
                             id: product.id,
                             name: product.name,
                             price: product.price,
                             image: product.image,
                             category: product.category,
-                            stockQty: stock,
-                          }, stock ?? undefined);
-                          if (!ok) { setStockLimit(true); window.setTimeout(() => setStockLimit(false), 2500); }
-                        }}
+                          })
+                        }
                       >
                         <Plus className="h-4 w-4" />
                       </Button>

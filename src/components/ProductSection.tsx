@@ -25,34 +25,24 @@ const ProductSection = ({
 }: ProductSectionProps) => {
   const [expanded, setExpanded] = useState(false);
 
-  // Oculta produtos com estoque zerado (stockQty = 0), mantém os sem limite (null)
-  const availableProducts = useMemo(
-    () => products.filter((p) => p.stockQty === null || p.stockQty === undefined || p.stockQty > 0),
-    [products]
-  );
-
   useEffect(() => {
     setExpanded(false);
-  }, [title, availableProducts.length]);
+  }, [title, products.length]);
 
-  const showEmpty = !isLoading && availableProducts.length === 0;
+  const showEmpty = !isLoading && products.length === 0;
   const showError = !isLoading && isError;
   const visibleProducts = useMemo(
-    () => (expanded ? availableProducts : availableProducts.slice(0, initialVisibleCount)),
-    [expanded, availableProducts, initialVisibleCount]
+    () => (expanded ? products : products.slice(0, initialVisibleCount)),
+    [expanded, products, initialVisibleCount]
   );
-  const hasMore = availableProducts.length > initialVisibleCount;
+  const hasMore = products.length > initialVisibleCount;
 
   return (
     <section className="px-2.5 py-5 sm:px-4 md:px-6 md:py-10 lg:py-12">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
-        <div className="flex w-full max-w-xl items-center gap-3 mb-4 sm:mb-6 md:mb-8">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/30 to-accent/60" />
-          <h2 className="shrink-0 text-sm font-display font-semibold uppercase tracking-[0.2em] text-accent sm:text-base md:text-lg lg:text-xl lg:tracking-widest">
-            {title}
-          </h2>
-          <div className="h-px flex-1 bg-gradient-to-l from-transparent via-accent/30 to-accent/60" />
-        </div>
+        <h2 className="mb-4 text-sm font-display font-semibold uppercase tracking-[0.2em] text-accent sm:mb-6 sm:text-base md:mb-8 md:text-lg lg:text-xl lg:tracking-widest">
+          {title}
+        </h2>
 
         {showError ? (
           <div className="text-center text-sm text-muted-foreground">{errorMessage}</div>
@@ -91,8 +81,6 @@ const ProductSection = ({
                         gallery={product.gallery}
                         category={product.category}
                         isNew={product.isNew}
-                        stockQty={product.stockQty}
-                        minStock={product.minStock}
                       />
                     </div>
                   ))}
