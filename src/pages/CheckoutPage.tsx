@@ -97,6 +97,7 @@ const CheckoutPage = () => {
   // (or after a manual QR scan returns to the page).
   const [paidOrder, setPaidOrder] = useState<{ id: number; number?: string } | null>(null);
   const [pixCancelled, setPixCancelled] = useState(false);
+  const [pollAuthError, setPollAuthError] = useState<string | null>(null);
 
   // Cupom
   const [couponInput, setCouponInput] = useState("");
@@ -193,6 +194,14 @@ const CheckoutPage = () => {
           joinUrl(API_BASE, `/orders/${pixPayment.orderId}/status`),
           { headers: { Accept: "application/json", ...tokenHeader }, credentials: "include" }
         );
+        // Auth errors do backend NÃO devem ser silenciados — antes o polling
+        // ficava infinito sem detectar. Avisamos o usuário e encerramos.
+        if (response.status === 401 || response.status === 403) {
+          const detail = await response.json().catch(() => null);
+          setPollAuthError(detail?.error || "Sua sessão expirou. Faça login novamente para acompanhar o pagamento.");
+          cancelled = true;
+          return;
+        }
         if (!response.ok) return;
         const payload = (await response.json().catch(() => null)) as
           | { id?: number; orderNumber?: string; status?: string; paymentStatus?: string; paidAt?: string | null }
@@ -211,7 +220,7 @@ const CheckoutPage = () => {
           setPixCancelled(true);
         }
       } catch {
-        // Swallow errors — next tick will retry.
+        // Erros de rede transitórios continuam silenciosos — próximo tick tenta de novo.
       }
     };
 
@@ -617,6 +626,46 @@ const CheckoutPage = () => {
             navigate("/historico");
           }}
         />
+      ) : null}
+
+      {/* Aviso quando o polling de status falha por sessão expirada / token inválido */}
+      {pollAuthError && !paidOrder ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-amber-500/30 bg-card p-6 shadow-2xl text-center space-y-4">
+            <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-full bg-amber-500/15">
+              <AlertCircle className="h-7 w-7 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Sessão expirada</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {pollAuthError} Seu pagamento, se confirmado, ficará disponível em "Histórico" assim que você voltar.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setPollAuthError(null);
+                  setPixPayment(null);
+                  navigate("/");
+                }}
+              >
+                Voltar à loja
+              </Button>
+              <Button
+                className="flex-1 bg-rasta-green text-white hover:bg-rasta-green/90"
+                onClick={() => {
+                  setPollAuthError(null);
+                  setPixPayment(null);
+                  navigate("/historico");
+                }}
+              >
+                Ver histórico
+              </Button>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {/* Popup de cancelamento por inatividade do pagamento PIX */}

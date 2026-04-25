@@ -28,7 +28,8 @@ const CategoryNav = () => {
   return (
     <section className="py-4 sm:py-6 md:py-8 lg:py-10 px-3 sm:px-4">
       <div className="max-w-5xl mx-auto">
-        <div className="-mx-1 overflow-x-auto pb-2 md:mx-0 md:overflow-visible md:pb-0">
+        {/* scrollbar invisivel no mobile, mantendo scroll funcional via touch/swipe */}
+        <div className="-mx-1 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:overflow-visible md:pb-0">
           <div className="flex min-w-max items-start gap-2.5 px-1 sm:gap-3 md:min-w-0 md:flex-wrap md:justify-center md:gap-6 lg:gap-8">
           {visibleCategories.map((category) => (
             <Link

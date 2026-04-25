@@ -44,9 +44,9 @@ const ProductSection = ({
   const hasMore = availableProducts.length > initialVisibleCount;
 
   return (
-    <section className="px-2.5 py-5 sm:px-4 md:px-6 md:py-10 lg:py-12">
+    <section className="px-3 py-6 sm:px-4 md:px-6 md:py-10 lg:py-12">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
-        <div className="flex w-full max-w-xl items-center gap-3 mb-4 sm:mb-6 md:mb-8">
+        <div className="flex w-full max-w-xl items-center gap-3 mb-5 sm:mb-6 md:mb-8">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/30 to-accent/60" />
           <h2 className="shrink-0 text-sm font-display font-semibold uppercase tracking-[0.2em] text-accent sm:text-base md:text-lg lg:text-xl lg:tracking-widest">
             {title}
@@ -60,7 +60,8 @@ const ProductSection = ({
           <div className="text-center text-sm text-muted-foreground">{emptyMessage}</div>
         ) : (
           <>
-            <div className="grid w-full max-w-6xl grid-cols-2 gap-2.5 justify-items-center sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+            {/* Mobile: 2 colunas com gap maior e respiro horizontal. Cards alinhados via auto-rows. */}
+            <div className="grid w-full max-w-6xl grid-cols-2 gap-x-3 gap-y-4 px-1 auto-rows-fr justify-items-center sm:gap-3 md:grid-cols-3 md:gap-4 md:px-0 lg:grid-cols-4">
               {isLoading
                 ? Array.from({ length: initialVisibleCount }).map((_, index) => (
                     <div
@@ -77,7 +78,7 @@ const ProductSection = ({
                 : visibleProducts.map((product, index) => (
                     <div
                       key={product.id}
-                      className="w-full max-w-[240px] animate-in fade-in slide-in-from-bottom-2 duration-500 md:max-w-[260px]"
+                      className="flex w-full max-w-[240px] animate-in fade-in slide-in-from-bottom-2 duration-500 md:max-w-[260px]"
                       style={{ animationDelay: `${index * 40}ms` }}
                     >
                       <ProductCard

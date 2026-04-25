@@ -26,10 +26,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col paper-bg">
-      <Header />
+      {/* PromoBanner vai como slot do header — assim some/aparece junto no efeito de scroll. */}
+      <Header bannerSlot={<PromoBanner />} />
 
       <main className="flex-1">
-        <PromoBanner />
         <CategoryNav />
         <NewsBanner
           products={bannersQuery.data ?? []}

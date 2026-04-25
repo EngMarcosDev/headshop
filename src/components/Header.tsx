@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Moon, ShoppingBag, Sun, User } from "lucide-react";
 import { Button } from "./ui/button";
@@ -6,15 +6,27 @@ import MobileMenu from "./MobileMenu";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { applyTheme, readCurrentTheme, type ThemeMode } from "@/lib/theme";
+import { useHideOnScroll } from "@/hooks/useHideOnScroll";
 
 const BRAND_ICON = "/assets/branding/logo-headshop.png";
 
-const Header = () => {
+interface HeaderProps {
+  /**
+   * Conteudo opcional renderizado abaixo do menu (ex: <PromoBanner />).
+   * Quando passado, ele acompanha o header no efeito hide-on-scroll,
+   * sumindo e reaparecendo junto.
+   */
+  bannerSlot?: ReactNode;
+}
+
+const Header = ({ bannerSlot }: HeaderProps = {}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [highlightCartBadge, setHighlightCartBadge] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>("light");
   const { totalItems, setIsOpen } = useCart();
   const { user } = useAuth();
+  // Threshold ~120px: usuario rola um cartao de produto antes do header sumir.
+  const isHeaderVisible = useHideOnScroll({ threshold: 120, revealDelta: 8 });
 
   const toggleTheme = () => {
     const next: ThemeMode = theme === "light" ? "dark" : "light";
@@ -45,12 +57,17 @@ const Header = () => {
 
   return (
     <>
-      <header className="w-full">
+      <header
+        className={`sticky top-0 z-40 w-full transform-gpu transition-transform duration-300 ease-out ${
+          isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
         <nav className="bg-header">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-1.5 sm:px-4 sm:py-3">
-            <Link to="/" className="flex items-center gap-1.5 sm:gap-2 text-base font-display font-bold text-header-foreground tracking-[0.18em] sm:text-2xl sm:tracking-widest hover:opacity-85 transition-opacity">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-sm sm:h-9 sm:w-9">
-                <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-6 w-6 rounded-full object-cover ring-1 ring-white/40 sm:h-8 sm:w-8" />
+          {/* Mobile com mais respiro vertical (py-2.5) e logo maior (h-9) pra dar destaque ao branding. */}
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
+            <Link to="/" className="flex items-center gap-2 sm:gap-2 text-lg font-display font-bold text-header-foreground tracking-[0.22em] sm:text-2xl sm:tracking-widest hover:opacity-85 transition-opacity">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-sm sm:h-9 sm:w-9">
+                <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-8 w-8 rounded-full object-cover ring-1 ring-white/40 sm:h-8 sm:w-8" />
               </span>
               <span>ABACAXITA</span>
             </Link>
@@ -128,6 +145,7 @@ const Header = () => {
         </nav>
 
         <div className="rasta-stripe" />
+        {bannerSlot}
       </header>
 
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
