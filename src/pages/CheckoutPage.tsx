@@ -182,11 +182,13 @@ const CheckoutPage = () => {
     if (!pixPayment?.orderId || paidOrder) return;
     let cancelled = false;
 
-    const tokenHeader = (() => {
-      if (typeof window === "undefined") return {} as Record<string, string>;
-      const token = window.localStorage.getItem("bacaxita:token") || "";
-      return token ? { Authorization: `Bearer ${token}` } : ({} as Record<string, string>);
-    })();
+    // Usa o token do AuthContext (mesma fonte do POST /orders). ANTES buscavamos
+    // direto do localStorage com a chave errada ("bacaxita:token") — a chave real
+    // que o AuthContext salva é "bacaxita_user" (objeto com .token dentro), entao
+    // o polling vinha sempre sem Authorization e tomava 401 do endpoint /status.
+    const tokenHeader: Record<string, string> = user?.token
+      ? { Authorization: `Bearer ${user.token}` }
+      : {};
 
     const poll = async () => {
       try {
@@ -320,8 +322,20 @@ const CheckoutPage = () => {
       });
 
       if (!orderResponse.ok) {
+        // 401 = token expirado/inválido. Limpa a sessão e força relogin
+        // em vez de só vomitar JSON cru no toast (era a UX que assustou hoje).
+        if (orderResponse.status === 401) {
+          try { window.localStorage.removeItem("bacaxita:token"); } catch { /* ignore */ }
+          window.dispatchEvent(new CustomEvent("bacaxita:login-popup", { detail: { force: true, mode: "login" } }));
+          throw new Error("Sua sessao expirou. Por favor, faca login novamente para finalizar o pedido.");
+        }
         const body = await orderResponse.text();
-        throw new Error(`Erro ao criar pedido: ${body}`);
+        let friendly = body;
+        try {
+          const parsed = JSON.parse(body);
+          friendly = parsed?.error || parsed?.message || body;
+        } catch { /* body não era JSON, mantém texto cru */ }
+        throw new Error(`Erro ao criar pedido: ${friendly}`);
       }
 
       const orderPayload = await orderResponse.json();

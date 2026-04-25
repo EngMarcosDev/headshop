@@ -58,16 +58,16 @@ const Header = ({ bannerSlot }: HeaderProps = {}) => {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full transform-gpu transition-transform duration-300 ease-out ${
+        className={`sticky top-0 z-40 w-full transform-gpu will-change-transform transition-transform duration-[450ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${
           isHeaderVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <nav className="bg-header">
-          {/* Mobile com mais respiro vertical (py-2.5) e logo maior (h-9) pra dar destaque ao branding. */}
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
-            <Link to="/" className="flex items-center gap-2 sm:gap-2 text-lg font-display font-bold text-header-foreground tracking-[0.22em] sm:text-2xl sm:tracking-widest hover:opacity-85 transition-opacity">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-sm sm:h-9 sm:w-9">
-                <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-8 w-8 rounded-full object-cover ring-1 ring-white/40 sm:h-8 sm:w-8" />
+          {/* Mobile com mais destaque: py-3.5, logo h-11, titulo text-xl. */}
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-3.5 sm:px-4 sm:py-3">
+            <Link to="/" className="flex items-center gap-2.5 sm:gap-2 text-xl font-display font-bold text-header-foreground tracking-[0.24em] sm:text-2xl sm:tracking-widest hover:opacity-85 transition-opacity">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-sm sm:h-9 sm:w-9">
+                <img src={BRAND_ICON} alt="HeadShop Bacaxita" className="h-10 w-10 rounded-full object-cover ring-1 ring-white/40 sm:h-8 sm:w-8" />
               </span>
               <span>ABACAXITA</span>
             </Link>

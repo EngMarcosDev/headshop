@@ -5,6 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 
 const DISMISS_PREFIX = "bacaxita:popup:dismissed:";
+// Cooldown padrão: 24h. Se o admin editar o popup, `updatedAt` muda e a key
+// também muda — então o popup reaparece automaticamente após uma edição.
+const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 const popupOrder = (popup: SitePopup) => {
   if (popup.type === "FIRST") return 0;
@@ -17,7 +20,11 @@ const dismissKey = (popup: Pick<SitePopup, "id" | "updatedAt">) =>
 
 const isDismissed = (popup: Pick<SitePopup, "id" | "updatedAt">) => {
   if (typeof window === "undefined") return false;
-  return Boolean(window.localStorage.getItem(dismissKey(popup)));
+  const raw = window.localStorage.getItem(dismissKey(popup));
+  if (!raw) return false;
+  const dismissedAt = Number(raw);
+  if (!Number.isFinite(dismissedAt)) return true;
+  return Date.now() - dismissedAt < DISMISS_COOLDOWN_MS;
 };
 
 const dismiss = (popup: Pick<SitePopup, "id" | "updatedAt">) => {
@@ -107,9 +114,12 @@ const SitePopupManager = () => {
   });
 
   const queue = useMemo(() => {
+    // Filtra qualquer popup ja descartado nesta janela de cooldown — independente
+    // de `dismissible`. Isso evita que o popup volte toda vez que o usuario navega
+    // entre paginas (login → categoria → home → popup, antes voltava sempre).
     const list = [...(popupsQuery.data ?? [])]
       .sort((a, b) => popupOrder(a) - popupOrder(b) || a.priority - b.priority)
-      .filter((popup) => !popup.dismissible || !isDismissed(popup));
+      .filter((popup) => !isDismissed(popup));
     return list;
   }, [popupsQuery.data]);
   const queueSignature = useMemo(
@@ -133,7 +143,10 @@ const SitePopupManager = () => {
 
   const closePopup = () => {
     if (!popup) return;
-    if (popup.dismissible) dismiss(popup);
+    // Sempre persiste o dismissal (com cooldown) — antes só persistia se
+    // `dismissible: true`, o que fazia popups non-dismissible reaparecerem
+    // toda navegação. Agora qualquer fechamento conta.
+    dismiss(popup);
     setIndex((current) => current + 1);
   };
 

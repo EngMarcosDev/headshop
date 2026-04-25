@@ -103,9 +103,11 @@ const normalizeProduct = (value: any): Product => {
     subcategory: typeof value?.subcategory === "string" ? value.subcategory : undefined,
     material: typeof value?.material === "string" ? value.material : undefined,
     brand: typeof value?.brand === "string" ? value.brand : undefined,
-    // Fail-closed: se backend não enviar stockQty, assumimos 0 (indisponível) em vez de null (sem limite).
-    // Isso evita que produto sem estoque mapeado vire "compra ilimitada" no carrinho.
-    stockQty: value?.stockQty != null ? Number(value.stockQty) : 0,
+    // ANTES tinhamos fail-closed (null → 0) que travou TODOS os produtos quando
+    // o backend não enviava stockQty pra alguns endpoints. Voltamos pra null
+    // (sem limite no frontend) — a validação real de estoque acontece no backend
+    // ao criar o pedido (POST /orders), que sempre confere stockQty no banco.
+    stockQty: value?.stockQty != null ? Number(value.stockQty) : null,
     minStock: value?.minStock != null ? Number(value.minStock) : null,
   };
 };

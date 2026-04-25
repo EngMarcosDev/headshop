@@ -45,12 +45,13 @@ const ProductCard = ({
   const primaryImage = gallery?.[0] || image;
 
   // ── Estoque ────────────────────────────────────────────────────────────────
-  // Fail-closed: stockQty ausente é tratado como zero (indisponível) — antes virava "sem limite".
-  const stock = typeof stockQty === "number" ? stockQty : 0;
+  // null = sem info (NAO trata como indisponivel — backend valida no checkout).
+  // Numero = limite real (0 = indisponivel; >0 mostra badges de "ultimas unidades").
+  const stock = typeof stockQty === "number" ? stockQty : null;
   const threshold = typeof minStock === "number" ? minStock : 10;
-  const outOfStock = stock <= 0;
-  const lastUnits = stock > 0 && stock <= 2;
-  const lowStock = stock > 2 && stock <= threshold;
+  const outOfStock = stock !== null && stock <= 0;
+  const lastUnits = stock !== null && stock > 0 && stock <= 2;
+  const lowStock = stock !== null && stock > 2 && stock <= threshold;
   const secondaryImage = gallery?.[1] || null;
   const hasDiscount =
     discountActive === true &&

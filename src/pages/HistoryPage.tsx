@@ -3,6 +3,8 @@ import { Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ResumePaymentModal from "@/components/ResumePaymentModal";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE, joinUrl } from "@/api/client";
 import { formatPrice } from "@/lib/priceFormatter";
@@ -30,6 +32,7 @@ const HistoryPage = () => {
   const [status, setStatus] = useState<"all" | "pendente" | "pago" | "enviado" | "cancelado">("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [resumePayment, setResumePayment] = useState<{ id: number; orderNumber?: string } | null>(null);
 
   const ordersQuery = useQuery({
     queryKey: ["orders", user?.email],
@@ -153,7 +156,8 @@ const HistoryPage = () => {
                           <th className="py-2 pr-3">Data</th>
                           <th className="py-2 pr-3">Status</th>
                           <th className="py-2 pr-3">Itens</th>
-                          <th className="py-2">Total</th>
+                          <th className="py-2 pr-3">Total</th>
+                          <th className="py-2 text-right">Ação</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -175,8 +179,19 @@ const HistoryPage = () => {
                                 ? order.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
                                 : 0}
                             </td>
-                            <td className="py-3 font-semibold text-foreground">
+                            <td className="py-3 pr-3 font-semibold text-foreground">
                               {formatPrice(Number(order.total || 0), { decimals: 2 })}
+                            </td>
+                            <td className="py-3 text-right">
+                              {order.status === "pendente" ? (
+                                <Button
+                                  size="sm"
+                                  className="h-8 bg-rasta-green text-white hover:bg-rasta-green/90"
+                                  onClick={() => setResumePayment({ id: order.id, orderNumber: order.orderNumber })}
+                                >
+                                  Pagar
+                                </Button>
+                              ) : null}
                             </td>
                           </tr>
                         ))}
@@ -201,6 +216,15 @@ const HistoryPage = () => {
                       <p className="mt-2 text-sm font-semibold text-foreground">
                         {formatPrice(Number(order.total || 0), { decimals: 2 })}
                       </p>
+                      {order.status === "pendente" ? (
+                        <Button
+                          size="sm"
+                          className="mt-3 h-9 w-full bg-rasta-green text-white hover:bg-rasta-green/90"
+                          onClick={() => setResumePayment({ id: order.id, orderNumber: order.orderNumber })}
+                        >
+                          Pagar
+                        </Button>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -211,6 +235,17 @@ const HistoryPage = () => {
       </main>
 
       <Footer />
+
+      {resumePayment ? (
+        <ResumePaymentModal
+          orderId={resumePayment.id}
+          orderNumber={resumePayment.orderNumber}
+          onClose={() => {
+            setResumePayment(null);
+            void ordersQuery.refetch();
+          }}
+        />
+      ) : null}
     </div>
   );
 };

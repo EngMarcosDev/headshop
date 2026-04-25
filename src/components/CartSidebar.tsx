@@ -95,7 +95,7 @@ const CartSidebar = () => {
                       <button
                         onClick={() => handleIncrement(item.id)}
                         className="flex h-6 w-6 items-center justify-center rounded border border-border bg-background hover:bg-muted disabled:opacity-40"
-                        disabled={item.quantity >= (typeof item.stockQty === "number" ? item.stockQty : 0)}
+                        disabled={typeof item.stockQty === "number" && item.quantity >= item.stockQty}
                       >
                         <Plus className="h-3 w-3" />
                       </button>
