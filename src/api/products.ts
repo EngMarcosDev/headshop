@@ -103,7 +103,9 @@ const normalizeProduct = (value: any): Product => {
     subcategory: typeof value?.subcategory === "string" ? value.subcategory : undefined,
     material: typeof value?.material === "string" ? value.material : undefined,
     brand: typeof value?.brand === "string" ? value.brand : undefined,
-    stockQty: value?.stockQty != null ? Number(value.stockQty) : null,
+    // Fail-closed: se backend não enviar stockQty, assumimos 0 (indisponível) em vez de null (sem limite).
+    // Isso evita que produto sem estoque mapeado vire "compra ilimitada" no carrinho.
+    stockQty: value?.stockQty != null ? Number(value.stockQty) : 0,
     minStock: value?.minStock != null ? Number(value.minStock) : null,
   };
 };

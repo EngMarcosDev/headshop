@@ -72,11 +72,12 @@ const ProductPage = () => {
 
   const cartItem = items.find((item) => item.id === product?.id);
   const quantity = cartItem?.quantity || 0;
-  const stock = product && typeof product.stockQty === "number" ? product.stockQty : null;
+  // Fail-closed: stockQty ausente é tratado como 0 (indisponível) — antes virava "sem limite".
+  const stock = product && typeof product.stockQty === "number" ? product.stockQty : 0;
   const threshold = product && typeof product.minStock === "number" ? product.minStock : 10;
-  const outOfStock = stock !== null && stock <= 0;
-  const lastUnits = stock !== null && stock > 0 && stock <= 2;
-  const lowStock = stock !== null && stock > 2 && stock <= threshold;
+  const outOfStock = stock <= 0;
+  const lastUnits = stock > 0 && stock <= 2;
+  const lowStock = stock > 2 && stock <= threshold;
   const [stockLimit, setStockLimit] = useState(false);
   const hasDiscount =
     product?.discountActive === true &&

@@ -73,15 +73,23 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [cartStorageKey, user?.email]);
 
   const addItem = (newItem: Omit<CartItem, "quantity">, maxQty?: number): boolean => {
-    // Prioridade: maxQty explícito → stockQty do próprio item → sem limite
-    const effectiveMax = maxQty ?? (typeof newItem.stockQty === "number" ? newItem.stockQty : undefined);
+    // Prioridade: maxQty explícito → stockQty do item → 0 (fail-closed, sem info = indisponível)
+    // ANTES: ausência de stockQty significava "sem limite" e cliente conseguia comprar infinito.
+    // AGORA: se não temos info de estoque, bloqueamos; o backend ainda valida no checkout.
+    const explicitStock =
+      typeof maxQty === "number"
+        ? maxQty
+        : typeof newItem.stockQty === "number"
+        ? newItem.stockQty
+        : 0;
+    const effectiveMax = Math.max(0, Math.floor(explicitStock));
     let allowed = true;
     setItems((prev) => {
       const existing = prev.find((item) => item.id === newItem.id);
       const currentQty = existing ? existing.quantity : 0;
-      if (effectiveMax != null && currentQty >= effectiveMax) {
+      if (currentQty >= effectiveMax) {
         allowed = false;
-        return prev; // não adiciona, estoque esgotado
+        return prev; // estoque esgotado ou sem informação
       }
       if (existing) {
         return prev.map((item) =>
@@ -105,7 +113,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item))
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        // Respeita o limite do estoque também em ajustes manuais de quantidade.
+        const cap = typeof item.stockQty === "number" ? Math.max(0, Math.floor(item.stockQty)) : 0;
+        const safeQty = cap > 0 ? Math.min(quantity, cap) : 0;
+        return { ...item, quantity: safeQty };
+      })
     );
   };
 
