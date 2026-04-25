@@ -153,7 +153,9 @@ const CategoryPage = () => {
           <section className="space-y-4 rounded-xl border border-border bg-card p-4 md:p-5">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Categorias</p>
-              <div className="mt-3 flex flex-wrap gap-2">
+              {/* Mobile: grid 3 colunas pra ficar alinhado independente do tamanho do nome.
+                  Desktop: flex-wrap natural. */}
+              <div className="mt-3 grid grid-cols-3 gap-2 md:flex md:flex-wrap">
                 {siteCategories.filter((category) => category.slug !== "banners").map((category) => {
                   const selected = category.slug === activeCategory.slug;
                   return (
@@ -161,14 +163,14 @@ const CategoryPage = () => {
                       key={category.slug}
                       to={category.href}
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all md:text-sm",
+                        "inline-flex items-center justify-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition-all md:gap-2 md:px-3 md:text-sm",
                         selected
                           ? "border-accent bg-accent text-white opacity-100 shadow-md"
                           : "border-border bg-background text-foreground/80 opacity-50 hover:opacity-90"
                       )}
                     >
-                      <category.icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                      {category.name}
+                      <category.icon className="h-3 w-3 shrink-0 md:h-4 md:w-4" />
+                      <span className="truncate">{category.name}</span>
                     </Link>
                   );
                 })}
@@ -198,7 +200,7 @@ const CategoryPage = () => {
                 </div>
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-2 max-sm:max-h-36 max-sm:overflow-y-auto">
+              <div className="mt-3 flex flex-wrap gap-1.5 sm:gap-2 max-sm:max-h-36 max-sm:overflow-y-auto">
                 {subcategoryOptions.map((option) => (
                   <Button
                     key={option.key}
@@ -206,12 +208,12 @@ const CategoryPage = () => {
                     size="sm"
                     variant={subcategoryFilter === option.key ? "default" : "outline"}
                     className={cn(
-                      "h-8 rounded-full px-3 text-xs md:text-sm",
+                      "h-7 max-w-full whitespace-nowrap rounded-full px-2.5 text-[11px] leading-none sm:h-8 sm:px-3 sm:text-xs md:text-sm",
                       subcategoryFilter === option.key ? "bg-primary text-primary-foreground" : "opacity-80"
                     )}
                     onClick={() => setSubcategoryFilter(option.key)}
                   >
-                    {option.label}
+                    <span className="truncate">{option.label}</span>
                   </Button>
                 ))}
               </div>

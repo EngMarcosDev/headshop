@@ -13,11 +13,13 @@ const Footer = () => {
     <footer className="mt-auto">
       <div className="rasta-stripe" />
 
-      <div className="footer-wood relative px-3 py-6 sm:px-4 md:py-8">
+      <div className="footer-wood relative px-4 py-6 sm:px-5 md:py-8">
         <div className="relative z-10 mx-auto max-w-3xl">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-6 text-footer-foreground md:grid-cols-3 md:gap-x-8">
-            {/* Coluna 1 — brand (full width no mobile pra ter destaque) */}
-            <div className="col-span-2 text-center md:col-span-1 md:text-left">
+          {/* Mobile: 1 coluna full-width (cada bloco com sua largura, sem estourar pills).
+              md+: 3 colunas. */}
+          <div className="grid grid-cols-1 gap-y-5 text-footer-foreground sm:grid-cols-2 sm:gap-x-6 md:grid-cols-3 md:gap-x-8 md:gap-y-6">
+            {/* Coluna 1 — brand */}
+            <div className="text-center sm:col-span-2 md:col-span-1 md:text-left">
               <h3 className="mb-2 text-lg font-display font-bold tracking-widest md:text-xl">ABACAXITA</h3>
               <p className="mx-auto max-w-[260px] text-xs leading-relaxed opacity-75 md:mx-0 md:text-sm">
                 Sua loja de acessórios com os melhores produtos e preços do mercado.
@@ -25,7 +27,7 @@ const Footer = () => {
             </div>
 
             {/* Coluna 2 — Links */}
-            <div className="text-left md:text-center">
+            <div className="text-center sm:text-left md:text-center">
               <h4 className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-rasta-yellow md:text-xs">Links</h4>
               <nav className="flex flex-col gap-1.5">
                 <Link to="/" className="text-xs opacity-75 transition-all hover:text-rasta-yellow hover:opacity-100 md:text-sm">Início</Link>
@@ -36,42 +38,43 @@ const Footer = () => {
             </div>
 
             {/* Coluna 3 — Contato */}
-            <div className="text-left md:text-right">
+            <div className="text-center sm:text-right md:text-right">
               <h4 className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-rasta-yellow md:text-xs">Contato</h4>
               <div className="flex flex-col gap-1.5 text-xs opacity-75 md:text-sm">
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
-                  className="flex items-center gap-1.5 transition-all hover:text-rasta-yellow md:justify-end"
+                  className="flex items-center justify-center gap-1.5 transition-all hover:text-rasta-yellow sm:justify-end"
                 >
-                  <Mail className="h-3.5 w-3.5" />
+                  <Mail className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{CONTACT_EMAIL}</span>
                 </a>
                 <a
                   href={`tel:+${CONTACT_WHATSAPP_PHONE}`}
-                  className="flex items-center gap-1.5 transition-all hover:text-rasta-yellow md:justify-end"
+                  className="flex items-center justify-center gap-1.5 transition-all hover:text-rasta-yellow sm:justify-end"
                 >
-                  <Phone className="h-3.5 w-3.5" />
+                  <Phone className="h-3.5 w-3.5 shrink-0" />
                   <span>{CONTACT_WHATSAPP_DISPLAY}</span>
                 </a>
               </div>
 
-              <div className="mt-3 flex items-center gap-2 md:justify-end">
+              {/* Pills com flex-wrap pra nunca estourar a coluna (era o bug do WhatsApp pra fora). */}
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:justify-end sm:gap-2">
                 <a
                   href={CONTACT_INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="social-pill-instagram"
+                  className="social-pill-instagram px-2 py-1 text-[11px] sm:px-3 sm:text-xs"
                 >
-                  <Instagram className="h-3.5 w-3.5" />
+                  <Instagram className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   Instagram
                 </a>
                 <a
                   href={CONTACT_WHATSAPP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="social-pill-whatsapp"
+                  className="social-pill-whatsapp px-2 py-1 text-[11px] sm:px-3 sm:text-xs"
                 >
-                  <MessageCircle className="h-3.5 w-3.5 fill-white" />
+                  <MessageCircle className="h-3 w-3 fill-white sm:h-3.5 sm:w-3.5" />
                   WhatsApp
                 </a>
               </div>

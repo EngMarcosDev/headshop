@@ -48,6 +48,15 @@ const ProductCard = ({
   // null = sem info (NAO trata como indisponivel — backend valida no checkout).
   // Numero = limite real (0 = indisponivel; >0 mostra badges de "ultimas unidades").
   const stock = typeof stockQty === "number" ? stockQty : null;
+
+  // Auto-cap retroativo: se o carrinho persistido tem quantity maior que o
+  // estoque atual (ex: cliente adicionou 28 antes da regra de estoque entrar
+  // em vigor, e agora o produto so tem 5), reduzimos pra o limite real.
+  // Isso roda uma vez quando o produto+stock muda, sem flicker.
+  useEffect(() => {
+    if (stock === null || quantity <= stock) return;
+    updateQuantity(id, Math.max(0, stock));
+  }, [id, stock, quantity, updateQuantity]);
   const threshold = typeof minStock === "number" ? minStock : 10;
   const outOfStock = stock !== null && stock <= 0;
   const lastUnits = stock !== null && stock > 0 && stock <= 2;
