@@ -32,12 +32,17 @@ const CategoryPage = () => {
   const categoriesQuery = useQuery({
     queryKey: ["categories", "category-page"],
     queryFn: fetchStoreCategories,
-    staleTime: 120000,
+    // Igual CategoryNav: cache longo evita refetch a cada navegação entre categorias.
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
   });
   const siteCategories = useMemo(() => {
     const fromApi = (categoriesQuery.data ?? []).map((entry) => buildCategoryFromApi(entry));
-    return fromApi.length > 0 ? fromApi : HEADSHOP_CATEGORIES;
-  }, [categoriesQuery.data]);
+    // Só usa o fallback hardcoded se a query realmente terminou (não enquanto loading).
+    if (fromApi.length > 0) return fromApi;
+    if (categoriesQuery.isLoading) return [];
+    return HEADSHOP_CATEGORIES;
+  }, [categoriesQuery.data, categoriesQuery.isLoading]);
   const activeCategory = getCategoryBySlug(normalizedSlug, siteCategories);
   const [priceSort, setPriceSort] = useState<"none" | "asc" | "desc">("none");
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
