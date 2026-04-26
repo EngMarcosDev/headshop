@@ -77,51 +77,57 @@ const ProductsPage = () => {
           </p>
         </div>
 
-        <section className="mb-6 rounded-xl border border-border bg-card p-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por nome, marca, subcategoria ou material..."
-              className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none ring-0 transition focus:border-accent"
-            />
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-accent"
-            >
-              <option value="all">Todas as categorias</option>
-              {categories.filter((category) => category.slug !== "banners").map((category) => (
-                <option key={category.slug} value={category.slug}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </section>
+        {/* Filtros: somente busca textual + chips de categoria (igual a CategoryPage).
+            ANTES tinha um <select> redundante de categoria — removido conforme pedido. */}
+        <section className="mb-5 space-y-4 rounded-xl border border-border bg-card p-4">
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar por nome, marca, subcategoria ou material..."
+            className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none ring-0 transition focus:border-accent"
+          />
 
-        <div className="mb-4 flex flex-wrap gap-2">
-          {categories.filter((category) => category.slug !== "banners").map((category) => {
-            const selected = categoryFilter === category.slug;
-            return (
+          <div>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Categorias
+            </p>
+            {/* Grid responsivo: 3 / 5 / 6 / 10 cols (com 1 a mais por causa do "Todas"). */}
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6 md:gap-2.5 lg:grid-cols-10">
               <button
-                key={category.slug}
                 type="button"
-                onClick={() => setCategoryFilter((current) => (current === category.slug ? "all" : category.slug))}
+                onClick={() => setCategoryFilter("all")}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all md:text-sm",
-                  selected
-                    ? "border-accent bg-accent text-white"
-                    : "border-border bg-card text-foreground/80 opacity-70 hover:opacity-100"
+                  "inline-flex items-center justify-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition-all md:gap-2 md:px-2.5 md:text-sm",
+                  categoryFilter === "all"
+                    ? "border-accent bg-accent text-white opacity-100 shadow-md"
+                    : "border-border bg-background text-foreground/80 opacity-50 hover:opacity-90"
                 )}
               >
-                <category.icon className="h-4 w-4" />
-                {category.name}
+                <span className="truncate">Todas</span>
               </button>
-            );
-          })}
-        </div>
+              {categories.filter((category) => category.slug !== "banners").map((category) => {
+                const selected = categoryFilter === category.slug;
+                return (
+                  <button
+                    key={category.slug}
+                    type="button"
+                    onClick={() => setCategoryFilter((current) => (current === category.slug ? "all" : category.slug))}
+                    className={cn(
+                      "inline-flex items-center justify-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition-all md:gap-2 md:px-2.5 md:text-sm",
+                      selected
+                        ? "border-accent bg-accent text-white opacity-100 shadow-md"
+                        : "border-border bg-background text-foreground/80 opacity-50 hover:opacity-90"
+                    )}
+                  >
+                    <category.icon className="h-3 w-3 shrink-0 md:h-4 md:w-4" />
+                    <span className="truncate">{category.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
 
         {productsQuery.isLoading ? (
           <PineappleLoader label="Carregando produtos" compact />
@@ -132,11 +138,13 @@ const ProductsPage = () => {
             <p className="text-muted-foreground">Nenhum produto encontrado com os filtros selecionados.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+          // Mesmo grid e wrappers do ProductSection (Mais Vendidos) pra ficar
+          // visualmente uniforme com o restante do site.
+          <div className="grid grid-cols-2 gap-2.5 justify-items-center sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
-                className="w-full max-w-[260px] justify-self-center animate-in fade-in slide-in-from-bottom-2 duration-500"
+                className="w-full max-w-[240px] animate-in fade-in slide-in-from-bottom-2 duration-500 md:max-w-[260px]"
                 style={{ animationDelay: `${index * 40}ms` }}
               >
                 <ProductCard
@@ -150,6 +158,8 @@ const ProductsPage = () => {
                   gallery={product.gallery}
                   category={product.category}
                   isNew={product.isNew}
+                  stockQty={product.stockQty}
+                  minStock={product.minStock}
                 />
               </div>
             ))}

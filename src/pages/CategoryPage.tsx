@@ -153,9 +153,9 @@ const CategoryPage = () => {
           <section className="space-y-4 rounded-xl border border-border bg-card p-4 md:p-5">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Categorias</p>
-              {/* Mobile: grid 3 colunas pra ficar alinhado independente do tamanho do nome.
-                  Desktop: flex-wrap natural. */}
-              <div className="mt-3 grid grid-cols-3 gap-2 md:flex md:flex-wrap">
+              {/* Grid responsivo SEMPRE — alinhamento perfeito em qualquer largura.
+                  Mobile: 3 col / sm: 5 / md: 6 / lg: 9 (todas em uma linha). */}
+              <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6 md:gap-2.5 lg:grid-cols-9">
                 {siteCategories.filter((category) => category.slug !== "banners").map((category) => {
                   const selected = category.slug === activeCategory.slug;
                   return (
@@ -163,7 +163,7 @@ const CategoryPage = () => {
                       key={category.slug}
                       to={category.href}
                       className={cn(
-                        "inline-flex items-center justify-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition-all md:gap-2 md:px-3 md:text-sm",
+                        "inline-flex items-center justify-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition-all md:gap-2 md:px-2.5 md:text-sm",
                         selected
                           ? "border-accent bg-accent text-white opacity-100 shadow-md"
                           : "border-border bg-background text-foreground/80 opacity-50 hover:opacity-90"
@@ -177,45 +177,39 @@ const CategoryPage = () => {
               </div>
             </div>
 
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                  Subcategorias
-                </p>
-                <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-2 py-1">
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Preço</span>
-                  <Select
-                    value={priceSort}
-                    onValueChange={(value) => setPriceSort(value as "none" | "asc" | "desc")}
-                  >
-                    <SelectTrigger className="h-7 min-w-[138px] border-none bg-transparent px-2 text-xs text-foreground shadow-none focus:ring-0 md:text-sm">
-                      <SelectValue placeholder="Sem ordem" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card text-foreground">
-                      <SelectItem value="none">Sem ordem</SelectItem>
-                      <SelectItem value="asc">Menor preço</SelectItem>
-                      <SelectItem value="desc">Maior preço</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            {/* Filtros: subcategoria + preco lado a lado em selects compactos.
+                Antes eram chips desorganizados que poluiam a tela. */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+              <div className="space-y-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Filtrar por</p>
+                <Select value={subcategoryFilter} onValueChange={(value) => setSubcategoryFilter(value)}>
+                  <SelectTrigger className="h-9 w-full text-xs sm:text-sm">
+                    <SelectValue placeholder="Todos os filtros" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72 bg-card text-foreground">
+                    {subcategoryOptions.map((option) => (
+                      <SelectItem key={option.key} value={option.key} className="text-xs sm:text-sm">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-
-              <div className="mt-3 flex flex-wrap gap-1.5 sm:gap-2 max-sm:max-h-36 max-sm:overflow-y-auto">
-                {subcategoryOptions.map((option) => (
-                  <Button
-                    key={option.key}
-                    type="button"
-                    size="sm"
-                    variant={subcategoryFilter === option.key ? "default" : "outline"}
-                    className={cn(
-                      "h-7 max-w-full whitespace-nowrap rounded-full px-2.5 text-[11px] leading-none sm:h-8 sm:px-3 sm:text-xs md:text-sm",
-                      subcategoryFilter === option.key ? "bg-primary text-primary-foreground" : "opacity-80"
-                    )}
-                    onClick={() => setSubcategoryFilter(option.key)}
-                  >
-                    <span className="truncate">{option.label}</span>
-                  </Button>
-                ))}
+              <div className="space-y-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Ordenar por preço</p>
+                <Select
+                  value={priceSort}
+                  onValueChange={(value) => setPriceSort(value as "none" | "asc" | "desc")}
+                >
+                  <SelectTrigger className="h-9 w-full text-xs sm:text-sm">
+                    <SelectValue placeholder="Sem ordem" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card text-foreground">
+                    <SelectItem value="none">Sem ordem</SelectItem>
+                    <SelectItem value="asc">Menor preço</SelectItem>
+                    <SelectItem value="desc">Maior preço</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </section>

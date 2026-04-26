@@ -333,8 +333,29 @@ const CheckoutPage = () => {
         let friendly = body;
         try {
           const parsed = JSON.parse(body);
+          // Tratamento especial pra 409 INSUFFICIENT_STOCK: backend devolve
+          // `items: [{name, available, requested}]` — listamos pro cliente
+          // saber EXATAMENTE quais produtos estão sem estoque.
+          if (orderResponse.status === 409 && Array.isArray(parsed?.items) && parsed.items.length > 0) {
+            const lines = parsed.items.map((item: any) => {
+              const name = String(item?.name || `Produto #${item?.productId || "?"}`);
+              const available = Number(item?.available || 0);
+              const requested = Number(item?.requested || 0);
+              if (available <= 0) return `• ${name}: sem estoque (você pediu ${requested})`;
+              return `• ${name}: só temos ${available} (você pediu ${requested})`;
+            });
+            throw new Error(
+              `Estoque insuficiente para ${parsed.items.length === 1 ? "este item" : "estes itens"}:\n${lines.join("\n")}\n\nAjuste a quantidade na sacola e tente novamente.`
+            );
+          }
           friendly = parsed?.error || parsed?.message || body;
-        } catch { /* body não era JSON, mantém texto cru */ }
+        } catch (parseErr: any) {
+          // Se já jogamos uma mensagem customizada acima, propaga ela
+          if (parseErr instanceof Error && parseErr.message?.startsWith("Estoque insuficiente")) {
+            throw parseErr;
+          }
+          /* body não era JSON, mantém texto cru */
+        }
         throw new Error(`Erro ao criar pedido: ${friendly}`);
       }
 

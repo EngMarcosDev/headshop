@@ -218,36 +218,58 @@ const HistoryPage = () => {
 
           <div className="mb-4 rounded-xl border border-border bg-card p-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-              <input
-                type="text"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Código do pedido"
-                className="h-10 rounded-md border border-border bg-background px-3 text-sm"
-              />
-              <select
-                value={status}
-                onChange={(event) => setStatus(event.target.value as typeof status)}
-                className="h-10 rounded-md border border-border bg-background px-3 text-sm"
-              >
-                <option value="all">Todos os status</option>
-                <option value="pendente">Pendente</option>
-                <option value="pago">Pago</option>
-                <option value="enviado">Enviado</option>
-                <option value="cancelado">Cancelado</option>
-              </select>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(event) => setFromDate(event.target.value)}
-                className="h-10 rounded-md border border-border bg-background px-3 text-sm"
-              />
-              <input
-                type="date"
-                value={toDate}
-                onChange={(event) => setToDate(event.target.value)}
-                className="h-10 rounded-md border border-border bg-background px-3 text-sm"
-              />
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Código do pedido
+                </label>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Ex: BAC-1777..."
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-accent placeholder:text-muted-foreground/60"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Status
+                </label>
+                <select
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value as typeof status)}
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-accent"
+                >
+                  <option value="all">Todos os status</option>
+                  <option value="pendente">Pendente</option>
+                  <option value="pago">Pago</option>
+                  <option value="enviado">Enviado</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+              {/* Inputs de data com rotulo + estilo consistente. ANTES ficavam
+                  brancos/transparentes e o usuário mal via. */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  De
+                </label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(event) => setFromDate(event.target.value)}
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition focus:border-accent [color-scheme:dark] dark:[color-scheme:dark]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Até
+                </label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(event) => setToDate(event.target.value)}
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition focus:border-accent [color-scheme:dark] dark:[color-scheme:dark]"
+                />
+              </div>
             </div>
           </div>
 
