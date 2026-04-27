@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowLeft, Copy, Tag, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { AlertCircle, ArrowLeft, Copy, MapPin, Tag, X } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CheckoutSummary from "@/components/checkout/CheckoutSummary";
 import PaymentMethodSelector, { type CheckoutMethod } from "@/components/checkout/PaymentMethodSelector";
 import OrderSuccessPopup from "@/components/OrderSuccessPopup";
+import CouponShowcase from "@/components/CouponShowcase";
+import { PENDING_COUPON_KEY } from "@/components/CartSidebar";
+import type { AvailableCoupon } from "@/api/coupons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
@@ -122,8 +125,10 @@ const CheckoutPage = () => {
   const couponDiscount = appliedCoupon?.discountAmount ?? 0;
   const checkoutTotal = Math.max(0, checkoutSubtotal - couponDiscount);
 
-  const handleValidateCoupon = async () => {
-    const code = couponInput.trim().toUpperCase();
+  // Helper compartilhado: valida no backend e aplica. Usado pelo input manual
+  // E pela vitrine de cupons (clicar em "Aplicar" num card destravado).
+  const applyCouponByCode = async (rawCode: string) => {
+    const code = rawCode.trim().toUpperCase();
     if (!code) return;
     setCouponLoading(true);
     setCouponError(null);
@@ -136,6 +141,8 @@ const CheckoutPage = () => {
       const data = await response.json().catch(() => null);
       if (!response.ok) {
         setCouponError(data?.error || "Cupom inválido.");
+        // Cupom inválido invalida o pending também — não tenta de novo.
+        try { window.localStorage.removeItem(PENDING_COUPON_KEY); } catch { /* ignora */ }
         return;
       }
       setAppliedCoupon({
@@ -144,12 +151,31 @@ const CheckoutPage = () => {
         description: data.description,
       });
       setCouponInput("");
+      // Persiste o cupom aplicado pra sobreviver a refresh/navegação.
+      try { window.localStorage.setItem(PENDING_COUPON_KEY, data.code); } catch { /* ignora */ }
     } catch {
       setCouponError("Erro ao validar cupom. Tente novamente.");
     } finally {
       setCouponLoading(false);
     }
   };
+
+  const handleValidateCoupon = () => applyCouponByCode(couponInput);
+
+  const handleApplyShowcaseCoupon = (coupon: AvailableCoupon) => applyCouponByCode(coupon.code);
+
+  // Ao montar o checkout, se o cliente já aplicou um cupom na sacola,
+  // reaplicar automaticamente. Faz uma única tentativa — se falhar, limpa.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (appliedCoupon) return; // já aplicado, não força
+    if (checkoutSubtotal <= 0) return; // espera o subtotal ser conhecido
+    let pending: string | null = null;
+    try { pending = window.localStorage.getItem(PENDING_COUPON_KEY); } catch { return; }
+    if (!pending) return;
+    void applyCouponByCode(pending);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkoutSubtotal]);
 
   const pixExpiresAtMs = useMemo(() => {
     if (!pixPayment?.expiresAt) return null;
@@ -215,6 +241,8 @@ const CheckoutPage = () => {
 
         if (PAID_ORDER_STATUSES.has(status) || PAID_ORDER_STATUSES.has(paymentStatus) || paymentStatus === "APPROVED" || paymentStatus === "PAID" || payload.paidAt) {
           setPaidOrder({ id: Number(payload.id ?? pixPayment.orderId), number: payload.orderNumber });
+          // Pedido pago — limpa o cupom pendente para nao reaplicar no proximo pedido.
+          try { window.localStorage.removeItem(PENDING_COUPON_KEY); } catch { /* ignora */ }
           return;
         }
 
@@ -476,6 +504,8 @@ const CheckoutPage = () => {
         ) : (
           <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
             <section className="space-y-5">
+              {/* Bloco de endereço de entrega — usa o cadastrado em Minha Conta. */}
+              <DeliveryAddressBlock />
               <PaymentMethodSelector selected={selectedMethod} onSelect={setSelectedMethod} />
 
               <div className="rounded-[24px] border border-border bg-card p-5">
@@ -560,7 +590,18 @@ const CheckoutPage = () => {
                 </div>
               ) : null}
 
-              {/* Campo de cupom */}
+              {/* Vitrine de cupons gamificada — mostra todos os cupons ativos com
+                  barra de progresso até o minOrderValue. Ao clicar em "Aplicar"
+                  num cupom destravado, ele é validado e fica como cupom ativo. */}
+              {!pixPayment && checkoutSubtotal > 0 ? (
+                <CouponShowcase
+                  subtotal={checkoutSubtotal}
+                  appliedCode={appliedCoupon?.code ?? null}
+                  onApply={handleApplyShowcaseCoupon}
+                />
+              ) : null}
+
+              {/* Campo de cupom (input manual — alternativa pra quem tem código fora da vitrine) */}
               {!pixPayment ? (
                 <div className="rounded-[24px] border border-border bg-card p-5 space-y-3">
                   <div className="flex items-center gap-2">
@@ -580,7 +621,11 @@ const CheckoutPage = () => {
                       </div>
                       <button
                         type="button"
-                        onClick={() => { setAppliedCoupon(null); setCouponError(null); }}
+                        onClick={() => {
+                          setAppliedCoupon(null);
+                          setCouponError(null);
+                          try { window.localStorage.removeItem(PENDING_COUPON_KEY); } catch { /* ignora */ }
+                        }}
                         className="text-green-500 hover:text-green-700"
                         aria-label="Remover cupom"
                       >
@@ -741,6 +786,58 @@ const CheckoutPage = () => {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+};
+
+// ─── DeliveryAddressBlock ──────────────────────────────────────────────────
+// Mostra o endereço cadastrado em "Minha Conta" como destino do pedido.
+// Se o user ainda não preencheu, exibe um aviso amigável com botão pra cadastrar.
+// O endereço é enviado pro pedido pelo backend (lê automaticamente do perfil),
+// então este componente é só leitura — sem necessidade de form aqui.
+const DeliveryAddressBlock = () => {
+  const { user } = useAuth();
+  const hasAddress = Boolean(
+    user?.addressStreet && user?.addressNumber && user?.addressCity && user?.addressState
+  );
+
+  return (
+    <div className="rounded-[24px] border border-border bg-card p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rasta-green/10 text-rasta-green">
+            <MapPin className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-foreground">Endereço de entrega</h3>
+            {hasAddress ? (
+              <div className="mt-1 space-y-0.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                <p className="text-foreground">
+                  {user?.addressStreet}, {user?.addressNumber}
+                  {user?.addressComplement ? ` — ${user.addressComplement}` : ""}
+                </p>
+                <p>
+                  {[user?.addressNeighborhood, user?.addressCity, user?.addressState]
+                    .filter(Boolean)
+                    .join(" · ")}
+                  {user?.addressZipCode ? ` · CEP ${user.addressZipCode}` : ""}
+                </p>
+                {user?.addressReference ? <p className="italic">Ref: {user.addressReference}</p> : null}
+              </div>
+            ) : (
+              <p className="mt-1 text-xs text-amber-700 sm:text-sm">
+                Você ainda não cadastrou um endereço. Adicione em Minha Conta para concluir a entrega.
+              </p>
+            )}
+          </div>
+        </div>
+        <Link
+          to="/conta/configuracoes"
+          className="shrink-0 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
+        >
+          {hasAddress ? "Editar" : "Cadastrar"}
+        </Link>
+      </div>
     </div>
   );
 };

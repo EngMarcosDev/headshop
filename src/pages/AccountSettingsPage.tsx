@@ -15,6 +15,19 @@ const AccountSettingsPage = () => {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
+  // ── Address form (entrega) — todos opcionais. Se incompleto, no checkout o
+  // cliente pode preencher na hora.
+  const [addrZipCode,      setAddrZipCode]      = useState(user?.addressZipCode      ?? "");
+  const [addrStreet,       setAddrStreet]       = useState(user?.addressStreet       ?? "");
+  const [addrNumber,       setAddrNumber]       = useState(user?.addressNumber       ?? "");
+  const [addrComplement,   setAddrComplement]   = useState(user?.addressComplement   ?? "");
+  const [addrNeighborhood, setAddrNeighborhood] = useState(user?.addressNeighborhood ?? "");
+  const [addrCity,         setAddrCity]         = useState(user?.addressCity         ?? "");
+  const [addrState,        setAddrState]        = useState(user?.addressState        ?? "");
+  const [addrReference,    setAddrReference]    = useState(user?.addressReference    ?? "");
+  const [addrSaving, setAddrSaving] = useState(false);
+  const [addrMsg, setAddrMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
   // ── Password form
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -46,6 +59,23 @@ const AccountSettingsPage = () => {
     }
   }, [user?.name, user?.phone]);
 
+  // Hidrata endereço quando o profile chega da API (evita sobrescrever se o user
+  // já estava editando um campo).
+  useEffect(() => {
+    if (!user) return;
+    setAddrZipCode((prev) => (prev === "" ? (user.addressZipCode ?? "") : prev));
+    setAddrStreet((prev) => (prev === "" ? (user.addressStreet ?? "") : prev));
+    setAddrNumber((prev) => (prev === "" ? (user.addressNumber ?? "") : prev));
+    setAddrComplement((prev) => (prev === "" ? (user.addressComplement ?? "") : prev));
+    setAddrNeighborhood((prev) => (prev === "" ? (user.addressNeighborhood ?? "") : prev));
+    setAddrCity((prev) => (prev === "" ? (user.addressCity ?? "") : prev));
+    setAddrState((prev) => (prev === "" ? (user.addressState ?? "") : prev));
+    setAddrReference((prev) => (prev === "" ? (user.addressReference ?? "") : prev));
+  }, [
+    user?.addressZipCode, user?.addressStreet, user?.addressNumber, user?.addressComplement,
+    user?.addressNeighborhood, user?.addressCity, user?.addressState, user?.addressReference,
+  ]);
+
   if (!user) {
     return <Navigate to="/" replace />;
   }
@@ -64,6 +94,28 @@ const AccountSettingsPage = () => {
       setProfileMsg({ type: "ok", text: "Dados atualizados com sucesso!" });
     } else {
       setProfileMsg({ type: "err", text: result.error ?? "Erro ao salvar dados." });
+    }
+  };
+
+  const handleAddressSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setAddrSaving(true);
+    setAddrMsg(null);
+    const result = await updateProfile({
+      addressZipCode:      addrZipCode.trim(),
+      addressStreet:       addrStreet.trim(),
+      addressNumber:       addrNumber.trim(),
+      addressComplement:   addrComplement.trim(),
+      addressNeighborhood: addrNeighborhood.trim(),
+      addressCity:         addrCity.trim(),
+      addressState:        addrState.trim().toUpperCase(),
+      addressReference:    addrReference.trim(),
+    });
+    setAddrSaving(false);
+    if (result.ok) {
+      setAddrMsg({ type: "ok", text: "Endereço salvo com sucesso!" });
+    } else {
+      setAddrMsg({ type: "err", text: result.error ?? "Erro ao salvar endereço." });
     }
   };
 
@@ -179,6 +231,123 @@ const AccountSettingsPage = () => {
                   className="rounded-lg bg-rasta-green px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
                 >
                   {profileSaving ? "Salvando..." : "Salvar dados"}
+                </button>
+              </div>
+            </form>
+          </section>
+
+          {/* ── Endereço de entrega ───────────────────────────────── */}
+          <section className="mb-6 rounded-2xl border border-border bg-card shadow-sm">
+            <div className="border-b border-border px-6 py-4">
+              <h2 className="text-base font-semibold text-foreground">Endereço de Entrega</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Cadastre seu endereço para agilizar o checkout — você ainda pode alterar na hora da compra.
+              </p>
+            </div>
+
+            <form onSubmit={handleAddressSubmit} className="space-y-4 px-6 py-5">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="col-span-2 sm:col-span-1">
+                  <label htmlFor="addr-zip" className="mb-1.5 block text-sm font-medium text-foreground">CEP</label>
+                  <input
+                    id="addr-zip" type="text" value={addrZipCode}
+                    onChange={(e) => setAddrZipCode(e.target.value)}
+                    placeholder="00000-000" maxLength={12}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rasta-green/60"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label htmlFor="addr-street" className="mb-1.5 block text-sm font-medium text-foreground">Rua / Avenida</label>
+                  <input
+                    id="addr-street" type="text" value={addrStreet}
+                    onChange={(e) => setAddrStreet(e.target.value)}
+                    placeholder="Ex: R. Soc Mario Ferreira" maxLength={160}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rasta-green/60"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="addr-number" className="mb-1.5 block text-sm font-medium text-foreground">Número</label>
+                  <input
+                    id="addr-number" type="text" value={addrNumber}
+                    onChange={(e) => setAddrNumber(e.target.value)}
+                    placeholder="200" maxLength={20}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rasta-green/60"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="addr-complement" className="mb-1.5 block text-sm font-medium text-foreground">
+                    Complemento <span className="text-muted-foreground font-normal">(opcional)</span>
+                  </label>
+                  <input
+                    id="addr-complement" type="text" value={addrComplement}
+                    onChange={(e) => setAddrComplement(e.target.value)}
+                    placeholder="Ap 401, Bloco B" maxLength={120}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rasta-green/60"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="addr-neighborhood" className="mb-1.5 block text-sm font-medium text-foreground">Bairro</label>
+                  <input
+                    id="addr-neighborhood" type="text" value={addrNeighborhood}
+                    onChange={(e) => setAddrNeighborhood(e.target.value)}
+                    placeholder="Indianópolis" maxLength={120}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rasta-green/60"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label htmlFor="addr-city" className="mb-1.5 block text-sm font-medium text-foreground">Cidade</label>
+                  <input
+                    id="addr-city" type="text" value={addrCity}
+                    onChange={(e) => setAddrCity(e.target.value)}
+                    placeholder="Caruaru" maxLength={120}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rasta-green/60"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="addr-state" className="mb-1.5 block text-sm font-medium text-foreground">UF</label>
+                  <input
+                    id="addr-state" type="text" value={addrState}
+                    onChange={(e) => setAddrState(e.target.value.toUpperCase())}
+                    placeholder="PE" maxLength={2}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm uppercase text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rasta-green/60"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="addr-reference" className="mb-1.5 block text-sm font-medium text-foreground">
+                  Referência <span className="text-muted-foreground font-normal">(opcional)</span>
+                </label>
+                <input
+                  id="addr-reference" type="text" value={addrReference}
+                  onChange={(e) => setAddrReference(e.target.value)}
+                  placeholder="Edifício Bruna, em frente à praça" maxLength={200}
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rasta-green/60"
+                />
+              </div>
+
+              {addrMsg ? (
+                <p className={`text-sm font-medium ${addrMsg.type === "ok" ? "text-rasta-green" : "text-destructive"}`}>
+                  {addrMsg.text}
+                </p>
+              ) : null}
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={addrSaving}
+                  className="rounded-lg bg-rasta-green px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
+                >
+                  {addrSaving ? "Salvando..." : "Salvar endereço"}
                 </button>
               </div>
             </form>

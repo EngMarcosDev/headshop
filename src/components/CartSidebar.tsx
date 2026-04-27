@@ -2,8 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { X, Minus, Plus, Trash2, ShoppingBag, AlertCircle, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
+import CouponShowcase from "./CouponShowcase";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+
+// Chave compartilhada com CheckoutPage — quando o cliente aplica um cupom na
+// sacola, o checkout pré-popula o campo de cupom e mostra como já selecionado.
+export const PENDING_COUPON_KEY = "bacaxita:pending_coupon";
 
 const CartSidebar = () => {
   const navigate = useNavigate();
@@ -12,7 +17,19 @@ const CartSidebar = () => {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [stockLimitId, setStockLimitId] = useState<number | null>(null);
+  const [pendingCoupon, setPendingCoupon] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try { return window.localStorage.getItem(PENDING_COUPON_KEY); } catch { return null; }
+  });
   const limitTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+
+  const persistCoupon = (code: string | null) => {
+    setPendingCoupon(code);
+    try {
+      if (code) window.localStorage.setItem(PENDING_COUPON_KEY, code);
+      else window.localStorage.removeItem(PENDING_COUPON_KEY);
+    } catch { /* ignora — UX continua, só não persiste entre páginas */ }
+  };
 
   const handleIncrement = (itemId: number) => {
     const item = items.find((i) => i.id === itemId);
@@ -116,6 +133,27 @@ const CartSidebar = () => {
               ))}
             </div>
           )}
+
+          {/* Vitrine de cupons gamificada (mobile-first, regra do projeto). */}
+          {items.length > 0 ? (
+            <div className="mt-4">
+              <CouponShowcase
+                subtotal={totalPrice}
+                appliedCode={pendingCoupon}
+                onApply={(coupon) => persistCoupon(coupon.code)}
+                mobileOnly
+              />
+              {pendingCoupon ? (
+                <button
+                  type="button"
+                  onClick={() => persistCoupon(null)}
+                  className="mt-2 w-full text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                >
+                  Remover cupom aplicado ({pendingCoupon})
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         {items.length > 0 && (

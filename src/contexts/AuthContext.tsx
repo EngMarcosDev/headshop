@@ -1,12 +1,28 @@
 ﻿import React, { createContext, useContext, useEffect, useState } from "react";
 import { API_BASE, joinUrl } from "@/api/client";
 
-interface AuthUser {
+export interface AddressFields {
+  addressZipCode?: string | null;
+  addressStreet?: string | null;
+  addressNumber?: string | null;
+  addressComplement?: string | null;
+  addressNeighborhood?: string | null;
+  addressCity?: string | null;
+  addressState?: string | null;
+  addressReference?: string | null;
+}
+
+interface AuthUser extends AddressFields {
   email: string;
   name?: string;
   phone?: string;
   isAdmin: boolean;
   token?: string;
+}
+
+export interface UpdateProfileInput extends AddressFields {
+  name?: string;
+  phone?: string;
 }
 
 interface RegisterPayload {
@@ -26,7 +42,7 @@ interface AuthContextType {
   resendVerification: (email: string) => Promise<{ ok: boolean; verificationCode?: string; error?: string }>;
   googleLogin: (payload: { idToken?: string; accessToken?: string }) => Promise<{ ok: boolean; needsRegistration?: boolean; email?: string; name?: string; error?: string }>;
   logout: () => void;
-  updateProfile: (data: { name: string; phone?: string }) => Promise<{ ok: boolean; error?: string }>;
+  updateProfile: (data: UpdateProfileInput) => Promise<{ ok: boolean; error?: string }>;
   changePassword: (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => Promise<{ ok: boolean; error?: string }>;
   refreshProfile: () => Promise<void>;
 }
@@ -205,7 +221,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const updateProfile = async (data: { name: string; phone?: string }) => {
+  const updateProfile = async (data: UpdateProfileInput) => {
     if (!user?.token) return { ok: false, error: "Nao autenticado" };
     try {
       const response = await fetch(joinUrl(API_BASE, "/user/profile"), {
@@ -220,15 +236,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!response.ok) {
         return { ok: false, error: json?.error || "Nao foi possivel atualizar o perfil." };
       }
-      setUser((prev) =>
-        prev
-          ? {
-              ...prev,
-              name: json?.user?.name ?? prev.name,
-              phone: json?.user?.phone ?? prev.phone,
-            }
-          : prev
-      );
+      // Mescla TUDO que o backend devolveu (nome, phone, e os 8 campos de endereço).
+      setUser((prev) => (prev ? { ...prev, ...(json?.user ?? {}) } : prev));
       return { ok: true };
     } catch {
       return { ok: false, error: "Erro de conexao." };
@@ -265,15 +274,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!response.ok) return;
       const json = await response.json().catch(() => null);
       if (json?.user) {
-        setUser((prev) =>
-          prev
-            ? {
-                ...prev,
-                name: json.user.name ?? prev.name,
-                phone: json.user.phone ?? prev.phone,
-              }
-            : prev
-        );
+        // Hidrata todos os campos vindos do backend (incl. endereço completo).
+        setUser((prev) => (prev ? { ...prev, ...json.user } : prev));
       }
     } catch {
       // silently ignore
